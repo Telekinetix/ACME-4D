@@ -1,0 +1,25 @@
+{
+	"Default Classes": {
+		"groups": [
+			"ACME Classes"
+		]
+	},
+	"ACME Classes": {},
+	"Default Folder": {
+		"groups": [
+			"Default Classes",
+			"Default Forms",
+			"Default Project Methods",
+			"Default Tables"
+		]
+	},
+	"Default Forms": {},
+	"Default Project Methods": {
+		"groups": [
+			"ACME Methods"
+		]
+	},
+	"ACME Methods": {},
+	"Default Tables": {},
+	"trash": {}
+}
