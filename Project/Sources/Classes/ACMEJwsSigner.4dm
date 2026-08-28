@@ -424,13 +424,13 @@ Function _base64urlBlob($vb_input : Blob) : Text
 	// In v20: * = no line breaks (standard base64), manual conversion needed
 	// In v21+: * = base64URL format natively
 	var $vt_b64 : Text
-	BASE64 ENCODE($vb_input; $vt_b64; *)
+	BASE64 ENCODE:C895($vb_input; $vt_b64; *)
 	
 	// Manual conversion for v20 compatibility
 	// (v21 output already has these, but replacements are idempotent/harmless)
-	$vt_b64:=Replace string($vt_b64; "+"; "-")
-	$vt_b64:=Replace string($vt_b64; "/"; "_")
-	$vt_b64:=Replace string($vt_b64; "="; "")
+	$vt_b64:=Replace string:C233($vt_b64; "+"; "-")
+	$vt_b64:=Replace string:C233($vt_b64; "/"; "_")
+	$vt_b64:=Replace string:C233($vt_b64; "="; "")
 	return $vt_b64
 	
 	
@@ -438,17 +438,53 @@ Function _sha256Blob($vb_input : Blob) : Text
 	// Return SHA-256 digest of $vb_input as base64url string
 	var $vt_hex : Text
 	var $vb_digest : Blob
-	var $i : Integer
+	var $vl_hexLen; $vl_byteIdx; $i : Integer
+	var $vt_hexPair : Text
+	var $vl_byte : Integer
 	
-	// Generate digest returns hex string
+	// Generate digest returns hex string (64 chars for SHA-256)
 	$vt_hex:=Generate digest:C1147($vb_input; SHA256 digest:K66:4)
+	$vl_hexLen:=Length:C16($vt_hex)
+	
+	// Preallocate blob: 2 hex chars = 1 byte, so 64 hex = 32 bytes
+	SET BLOB SIZE:C606($vb_digest; $vl_hexLen/2)
 	
 	// Convert hex string to blob (2 hex chars = 1 byte)
-	For ($i; 1; Length:C16($vt_hex); 2)
-		INSERT IN BLOB:C559($vb_digest; BLOB size:C605($vb_digest); 1)
-		$vb_digest{BLOB size:C605($vb_digest)-1}:=Num:C11("0x"+Substring:C12($vt_hex; $i; 2))
+	$vl_byteIdx:=0
+	For ($i; 1; $vl_hexLen; 2)
+		$vt_hexPair:=Substring:C12($vt_hex; $i; 2)
+		$vl_byte:=This:C1470._hexToInt($vt_hexPair)
+		$vb_digest{$vl_byteIdx}:=$vl_byte
+		$vl_byteIdx:=$vl_byteIdx+1
 	End for 
 	
 	// Now base64url-encode the digest blob
 	return This:C1470._base64urlBlob($vb_digest)
+	
+	
+Function _hexToInt($vt_hex : Text) : Integer
+	// Convert a 2-character hex string to integer (0-255)
+	// Example: "d5" → 213, "0a" → 10, "ff" → 255
+	var $i; $vl_result; $vl_digit : Integer
+	var $vt_char : Text
+	
+	$vl_result:=0
+	For ($i; 1; Length:C16($vt_hex))
+		$vt_char:=Substring:C12($vt_hex; $i; 1)
+		
+		Case of 
+			: ($vt_char>="0") & ($vt_char<="9")
+				$vl_digit:=Character code:C91($vt_char)-Character code:C91("0")
+			: ($vt_char>="a") & ($vt_char<="f")
+				$vl_digit:=Character code:C91($vt_char)-Character code:C91("a")+10
+			: ($vt_char>="A") & ($vt_char<="F")
+				$vl_digit:=Character code:C91($vt_char)-Character code:C91("A")+10
+			Else 
+				$vl_digit:=0
+		End case 
+		
+		$vl_result:=($vl_result*16)+$vl_digit
+	End for 
+	
+	return $vl_result
 	
