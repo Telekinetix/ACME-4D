@@ -306,7 +306,7 @@ Function _derReadLength($vb_der : Blob) : Integer
 		// Long form: first byte's lower 7 bits = number of length bytes
 		$vl_numBytes:=$vl_firstByte & 0x007F
 		
-		If (($vl_numBytes>4) | (This:C1470._pos+$vl_numBytes>BLOB size:C605($vb_der)))
+		If (($vl_numBytes>4) | ((This:C1470._pos+$vl_numBytes)>BLOB size:C605($vb_der)))
 			return -1  // Length too large or blob too small
 		End if 
 		
@@ -333,7 +333,7 @@ Function _derReadInteger($vb_der : Blob) : Blob
 	End if 
 	
 	$vl_len:=This:C1470._derReadLength($vb_der)
-	If (($vl_len<=0) | (This:C1470._pos+$vl_len>BLOB size:C605($vb_der)))
+	If (($vl_len<=0) | ((This:C1470._pos+$vl_len)>BLOB size:C605($vb_der)))
 		return $vb_result  // Return empty blob
 	End if 
 	

@@ -244,7 +244,7 @@ Function _computeNextCheck() : Date
 	// The day-level granularity is sufficient for the scheduler — the ARI window
 	// provides fine-grained timing for the actual renewal trigger.
 	var $vd_next : Date
-	If (This:C1470._checkIntervalHours\24=0)
+	If ((This:C1470._checkIntervalHours\24)=0)
 		$vd_next:=Current date:C33+1
 	Else 
 		$vd_next:=Add to date:C393($vd_next; 0; 0; This:C1470._checkIntervalHours\24)

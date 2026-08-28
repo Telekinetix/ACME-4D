@@ -275,7 +275,7 @@ Function _encodeBase128($vl_value : Integer) : Blob
 	var $j : Integer
 	For ($j; 0; $vc_bytes.length-1)
 		INSERT IN BLOB:C559($vb_result; BLOB size:C605($vb_result); 1)
-		If ($j<$vc_bytes.length-1)
+		If ($j<($vc_bytes.length-1))
 			$vb_result{BLOB size:C605($vb_result)-1}:=($vc_bytes[$j] | 0x0080)
 		Else 
 			$vb_result{BLOB size:C605($vb_result)-1}:=$vc_bytes[$j]
