@@ -421,31 +421,34 @@ Function _base64url($vt_input : Text) : Text
 	
 Function _base64urlBlob($vb_input : Blob) : Text
 	// Base64URL-encode a Blob.
+	// In v20: * = no line breaks (standard base64), manual conversion needed
+	// In v21+: * = base64URL format natively
 	var $vt_b64 : Text
-	BASE64 ENCODE:C895($vb_input; $vt_b64; *)  // * = no line breaks
-	// Convert standard base64 → base64url
-	//$vt_b64:=Replace string($vt_b64; "+"; "-")
-	//$vt_b64:=Replace string($vt_b64; "/"; "_")
-	//$vt_b64:=Replace string($vt_b64; "="; "")
+	BASE64 ENCODE($vb_input; $vt_b64; *)
+	
+	// Manual conversion for v20 compatibility
+	// (v21 output already has these, but replacements are idempotent/harmless)
+	$vt_b64:=Replace string($vt_b64; "+"; "-")
+	$vt_b64:=Replace string($vt_b64; "/"; "_")
+	$vt_b64:=Replace string($vt_b64; "="; "")
 	return $vt_b64
 	
 	
 Function _sha256Blob($vb_input : Blob) : Text
-	// Return the SHA-256 digest of $vb_input as a Blob.
-	// Uses 4D's Generate digest with a blob → hex approach, then hex-decode.
-	// Generate digest returns a hex string; we convert that back to bytes.
-	var $vt_hex; $vt_out : Text
-	//var $vb_out : Blob
+	// Return SHA-256 digest of $vb_input as base64url string
+	var $vt_hex : Text
+	var $vb_digest : Blob
+	var $i : Integer
+	
+	// Generate digest returns hex string
 	$vt_hex:=Generate digest:C1147($vb_input; SHA256 digest:K66:4)
-	BASE64 ENCODE:C895($vt_hex; $vt_out; *)
-	// Hex-decode: iterate pairs of hex characters
-	//var $i; $vl_len : Integer
-	//var $vt_byte : Text
-	//$vl_len:=Length($vt_hex)
-	//For ($i; 1; $vl_len; 2)
-	//$vt_byte:=Substring($vt_hex; $i; 2)
-	//INSERT IN BLOB($vb_out; BLOB size($vb_out); 1)
-	//$vb_out{BLOB size($vb_out)-1}:=Num("0x"+$vt_byte)
-	//End for 
-	return $vt_out
+	
+	// Convert hex string to blob (2 hex chars = 1 byte)
+	For ($i; 1; Length:C16($vt_hex); 2)
+		INSERT IN BLOB:C559($vb_digest; BLOB size:C605($vb_digest); 1)
+		$vb_digest{BLOB size:C605($vb_digest)-1}:=Num:C11("0x"+Substring:C12($vt_hex; $i; 2))
+	End for 
+	
+	// Now base64url-encode the digest blob
+	return This:C1470._base64urlBlob($vb_digest)
 	
