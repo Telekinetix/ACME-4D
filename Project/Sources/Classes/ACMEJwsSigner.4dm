@@ -113,9 +113,9 @@ Function jwkThumbprint() : Text
 	TEXT TO BLOB:C554($vt_canonical_utf8; $vb_input; UTF8 text without length:K22:17)
 	
 	// Generate SHA-256 digest
-	$vb_hash:=This:C1470._sha256Blob($vb_input)
+	return This:C1470._sha256Blob($vb_input)
 	
-	return This:C1470._base64urlBlob($vb_hash)
+	//return This._base64urlBlob($vb_hash)
 	
 	
 	// ============================================================
@@ -218,59 +218,59 @@ Function _pemToDer($vt_pem : Text) : Blob
 	
 	
 Function _parseRsaPublicKey($vb_der : Blob) : Object
-    // Parse RSA public key from DER-encoded PKCS#8 SubjectPublicKeyInfo
-    // Returns { n: "<base64url>", e: "<base64url>" } or Null on error
-    
-    var $vl_len : Integer
-    var $vb_modulus; $vb_exponent : Blob
-    
-    This._pos:=0  // Start at beginning of blob
-    
-    // Outer SEQUENCE
-    If (Not(This._derExpectTag($vb_der; 0x30)))  // SEQUENCE tag
-        return Null
-    End if
-    $vl_len:=This._derReadLength($vb_der)
-    If ($vl_len<0)
-        return Null
-    End if
-    
-    // Algorithm identifier SEQUENCE
-    If (Not(This._derExpectTag($vb_der; 0x30)))
-        return Null
-    End if
-    $vl_len:=This._derReadLength($vb_der)
-    This._pos:=This._pos+$vl_len  // Skip the algorithm identifier
-    
-    // BIT STRING containing the actual public key
-    If (Not(This._derExpectTag($vb_der; 0x03)))  // BIT STRING tag
-        return Null
-    End if
-    $vl_len:=This._derReadLength($vb_der)
-    This._pos:=This._pos+1  // Skip unused bits byte (always 0 for RSA)
-    
-    // Inner SEQUENCE (RSA public key structure)
-    If (Not(This._derExpectTag($vb_der; 0x30)))
-        return Null
-    End if
-    $vl_len:=This._derReadLength($vb_der)
-    
-    // Read modulus (n) - INTEGER
-    $vb_modulus:=This._derReadInteger($vb_der)
-    If (BLOB size($vb_modulus)=0)  // Check blob size, not Null
-        return Null
-    End if
-    
-    // Read exponent (e) - INTEGER
-    $vb_exponent:=This._derReadInteger($vb_der)
-    If (BLOB size($vb_exponent)=0)  // Check blob size, not Null
-        return Null
-    End if
-    
-    // Convert to base64url and return
-    return New object(\
-        "n"; This._base64urlBlob($vb_modulus); \
-        "e"; This._base64urlBlob($vb_exponent))
+	// Parse RSA public key from DER-encoded PKCS#8 SubjectPublicKeyInfo
+	// Returns { n: "<base64url>", e: "<base64url>" } or Null on error
+	
+	var $vl_len : Integer
+	var $vb_modulus; $vb_exponent : Blob
+	
+	This:C1470._pos:=0  // Start at beginning of blob
+	
+	// Outer SEQUENCE
+	If (Not:C34(This:C1470._derExpectTag($vb_der; 0x0030)))  // SEQUENCE tag
+		return Null:C1517
+	End if 
+	$vl_len:=This:C1470._derReadLength($vb_der)
+	If ($vl_len<0)
+		return Null:C1517
+	End if 
+	
+	// Algorithm identifier SEQUENCE
+	If (Not:C34(This:C1470._derExpectTag($vb_der; 0x0030)))
+		return Null:C1517
+	End if 
+	$vl_len:=This:C1470._derReadLength($vb_der)
+	This:C1470._pos:=This:C1470._pos+$vl_len  // Skip the algorithm identifier
+	
+	// BIT STRING containing the actual public key
+	If (Not:C34(This:C1470._derExpectTag($vb_der; 0x0003)))  // BIT STRING tag
+		return Null:C1517
+	End if 
+	$vl_len:=This:C1470._derReadLength($vb_der)
+	This:C1470._pos:=This:C1470._pos+1  // Skip unused bits byte (always 0 for RSA)
+	
+	// Inner SEQUENCE (RSA public key structure)
+	If (Not:C34(This:C1470._derExpectTag($vb_der; 0x0030)))
+		return Null:C1517
+	End if 
+	$vl_len:=This:C1470._derReadLength($vb_der)
+	
+	// Read modulus (n) - INTEGER
+	$vb_modulus:=This:C1470._derReadInteger($vb_der)
+	If (BLOB size:C605($vb_modulus)=0)  // Check blob size, not Null
+		return Null:C1517
+	End if 
+	
+	// Read exponent (e) - INTEGER
+	$vb_exponent:=This:C1470._derReadInteger($vb_der)
+	If (BLOB size:C605($vb_exponent)=0)  // Check blob size, not Null
+		return Null:C1517
+	End if 
+	
+	// Convert to base64url and return
+	return New object:C1471(\
+		"n"; This:C1470._base64urlBlob($vb_modulus); \
+		"e"; This:C1470._base64urlBlob($vb_exponent))
 	
 	
 Function _derExpectTag($vb_der : Blob; $vl_expectedTag : Integer) : Boolean
@@ -321,38 +321,38 @@ Function _derReadLength($vb_der : Blob) : Integer
 	
 	
 Function _derReadInteger($vb_der : Blob) : Blob
-    // Read a DER INTEGER value and return as Blob (big-endian bytes)
-    // Advances This._pos. Returns empty blob on error.
-    
-    var $vl_len; $vl_start; $vl_copyLen : Integer
-    var $vb_result : Blob
-    
-    // Expect INTEGER tag (0x02)
-    If (Not(This._derExpectTag($vb_der; 0x02)))
-        return $vb_result  // Return empty blob
-    End if
-    
-    $vl_len:=This._derReadLength($vb_der)
-    If (($vl_len<=0) | (This._pos+$vl_len>BLOB size($vb_der)))
-        return $vb_result  // Return empty blob
-    End if
-    
-    $vl_start:=This._pos
-    $vl_copyLen:=$vl_len
-    
-    // Skip leading zero byte if present (DER uses it for positive numbers with high bit set)
-    If (($vl_len>1) & ($vb_der{This._pos}=0x00))
-        This._pos:=This._pos+1
-        $vl_copyLen:=$vl_copyLen-1
-    End if
-    
-    // Copy integer bytes to result blob
-    COPY BLOB($vb_der; $vb_result; This._pos; 0; $vl_copyLen)
-    
-    // Advance position past the entire integer (from start + original length)
-    This._pos:=$vl_start+$vl_len
-    
-    return $vb_result
+	// Read a DER INTEGER value and return as Blob (big-endian bytes)
+	// Advances This._pos. Returns empty blob on error.
+	
+	var $vl_len; $vl_start; $vl_copyLen : Integer
+	var $vb_result : Blob
+	
+	// Expect INTEGER tag (0x02)
+	If (Not:C34(This:C1470._derExpectTag($vb_der; 0x0002)))
+		return $vb_result  // Return empty blob
+	End if 
+	
+	$vl_len:=This:C1470._derReadLength($vb_der)
+	If (($vl_len<=0) | (This:C1470._pos+$vl_len>BLOB size:C605($vb_der)))
+		return $vb_result  // Return empty blob
+	End if 
+	
+	$vl_start:=This:C1470._pos
+	$vl_copyLen:=$vl_len
+	
+	// Skip leading zero byte if present (DER uses it for positive numbers with high bit set)
+	If (($vl_len>1) & ($vb_der{This:C1470._pos}=0x0000))
+		This:C1470._pos:=This:C1470._pos+1
+		$vl_copyLen:=$vl_copyLen-1
+	End if 
+	
+	// Copy integer bytes to result blob
+	COPY BLOB:C558($vb_der; $vb_result; This:C1470._pos; 0; $vl_copyLen)
+	
+	// Advance position past the entire integer (from start + original length)
+	This:C1470._pos:=$vl_start+$vl_len
+	
+	return $vb_result
 	
 	
 	// Function _buildPublicJwk() : Object
@@ -424,27 +424,28 @@ Function _base64urlBlob($vb_input : Blob) : Text
 	var $vt_b64 : Text
 	BASE64 ENCODE:C895($vb_input; $vt_b64; *)  // * = no line breaks
 	// Convert standard base64 → base64url
-	$vt_b64:=Replace string:C233($vt_b64; "+"; "-")
-	$vt_b64:=Replace string:C233($vt_b64; "/"; "_")
-	$vt_b64:=Replace string:C233($vt_b64; "="; "")
+	//$vt_b64:=Replace string($vt_b64; "+"; "-")
+	//$vt_b64:=Replace string($vt_b64; "/"; "_")
+	//$vt_b64:=Replace string($vt_b64; "="; "")
 	return $vt_b64
 	
 	
-Function _sha256Blob($vb_input : Blob) : Blob
+Function _sha256Blob($vb_input : Blob) : Text
 	// Return the SHA-256 digest of $vb_input as a Blob.
 	// Uses 4D's Generate digest with a blob → hex approach, then hex-decode.
 	// Generate digest returns a hex string; we convert that back to bytes.
-	var $vt_hex : Text
-	var $vb_out : Blob
+	var $vt_hex; $vt_out : Text
+	//var $vb_out : Blob
 	$vt_hex:=Generate digest:C1147($vb_input; SHA256 digest:K66:4)
+	BASE64 ENCODE:C895($vt_hex; $vt_out; *)
 	// Hex-decode: iterate pairs of hex characters
-	var $i; $vl_len : Integer
-	var $vt_byte : Text
-	$vl_len:=Length:C16($vt_hex)
-	For ($i; 1; $vl_len; 2)
-		$vt_byte:=Substring:C12($vt_hex; $i; 2)
-		INSERT IN BLOB:C559($vb_out; BLOB size:C605($vb_out); 1)
-		$vb_out{BLOB size:C605($vb_out)-1}:=Num:C11("0x"+$vt_byte)
-	End for 
-	return $vb_out
+	//var $i; $vl_len : Integer
+	//var $vt_byte : Text
+	//$vl_len:=Length($vt_hex)
+	//For ($i; 1; $vl_len; 2)
+	//$vt_byte:=Substring($vt_hex; $i; 2)
+	//INSERT IN BLOB($vb_out; BLOB size($vb_out); 1)
+	//$vb_out{BLOB size($vb_out)-1}:=Num("0x"+$vt_byte)
+	//End for 
+	return $vt_out
 	
