@@ -3,21 +3,21 @@
 // Configuration container for the ACME / Let's Encrypt component.
 // All site-specific settings live here; nothing is hard-coded elsewhere.
 // Provides a fluent setter API — every setter returns This so calls can
-// be chained: cs.acme.ACMEConfig.new().setEmail("admin@example.com").setStaging(True)
+// be chained: cs.ACMEConfig.new().setEmail("admin@example.com").setStaging(True)
 //
 // Defaults to the Let's Encrypt STAGING directory so accidental runs
 // during development never consume production rate-limit quota.
 //
 // Usage (host application):
-//   var $cfg : cs.acme.ACMEConfig
-//   $cfg:=cs.acme.ACMEConfig.new()
+//   var $cfg : cs.ACMEConfig
+//   $cfg:=cs.ACMEConfig.new()
 //   $cfg.setEmail("admin@example.com")
 //   $cfg.addIdentifier("myhost.example.com")
 //   $cfg.setCertPath("/etc/ssl/acme/cert.pem")
 //   $cfg.setKeyPath("/etc/ssl/acme/key.pem")
 //   $cfg.setStaging(False)  // only when ready for production
-//   var $client : cs.acme.ACMEClient
-//   $client:=cs.acme.ACMEClient.new($cfg)
+//   var $client : cs.ACMEClient
+//   $client:=cs.ACMEClient.new($cfg)
 // ----------------------------------------------------
 
 // ACME directory endpoint
@@ -54,7 +54,7 @@ property postRenewAction : Text
 
 // Optional Formula called after a successful renewal (receives result object).
 // Ignored when postRenewAction = "restart".
-property postRenewFormula : 4D.Function
+property postRenewFormula : 4D:C1709.Function
 
 // When True, uses the LE staging directory and does not produce trusted certs.
 // Set to False only when ready for production issuance.
@@ -75,171 +75,172 @@ property _urlProduction : Text
 
 
 Class constructor
-
-	This._urlStaging:="https://acme-staging-v02.api.letsencrypt.org/directory"
-	This._urlProduction:="https://acme-v02.api.letsencrypt.org/directory"
-
+	
+	This:C1470._urlStaging:="https://acme-staging-v02.api.letsencrypt.org/directory"
+	This:C1470._urlProduction:="https://acme-v02.api.letsencrypt.org/directory"
+	
 	// Staging is the safe default — must explicitly opt in to production
-	This.staging:=True
-	This.directoryUrl:=This._urlStaging
-
-	This.contactEmail:=""
-	This.identifiers:=New collection
-	This.certPath:=""
-	This.keyPath:=""
-	This.storePath:=""
-	This.challengeStrategy:="webserver"
-	This.webrootPath:=""
-	This.postRenewAction:="restart"
-	This.postRenewFormula:=Null
-	This.timeout:=30
-	This.maxPollAttempts:=20
-	This.pollIntervalSecs:=5
-
-
-// ============================================================
-// FLUENT SETTERS
-// ============================================================
-
-Function setEmail($email : Text) : cs.acme.ACMEConfig
+	This:C1470.staging:=True:C214
+	This:C1470.directoryUrl:=This:C1470._urlStaging
+	
+	This:C1470.contactEmail:=""
+	This:C1470.identifiers:=New collection:C1472
+	This:C1470.certPath:=""
+	This:C1470.keyPath:=""
+	This:C1470.storePath:=""
+	This:C1470.challengeStrategy:="webserver"
+	This:C1470.webrootPath:=""
+	This:C1470.postRenewAction:="restart"
+	This:C1470.postRenewFormula:=Null:C1517
+	This:C1470.timeout:=30
+	This:C1470.maxPollAttempts:=20
+	This:C1470.pollIntervalSecs:=5
+	
+	
+	// ============================================================
+	// FLUENT SETTERS
+	// ============================================================
+	
+Function setEmail($email : Text) : cs:C1710.ACMEConfig
 	// Set the contact e-mail address registered with the CA.
-	This.contactEmail:=$email
-	return This
-
-
-Function addIdentifier($hostname : Text) : cs.acme.ACMEConfig
+	This:C1470.contactEmail:=$email
+	return This:C1470
+	
+	
+Function addIdentifier($hostname : Text) : cs:C1710.ACMEConfig
 	// Add a hostname to the list of identifiers for this certificate.
 	// The first identifier becomes the certificate Common Name.
-	This.identifiers.push($hostname)
-	return This
-
-
-Function setIdentifiers($hostnames : Collection) : cs.acme.ACMEConfig
+	This:C1470.identifiers.push($hostname)
+	return This:C1470
+	
+	
+Function setIdentifiers($hostnames : Collection) : cs:C1710.ACMEConfig
 	// Replace the entire identifiers list.
-	This.identifiers:=$hostnames
-	return This
-
-
-Function setCertPath($path : Text) : cs.acme.ACMEConfig
+	This:C1470.identifiers:=$hostnames
+	return This:C1470
+	
+	
+Function setCertPath($path : Text) : cs:C1710.ACMEConfig
 	// Path where the PEM certificate chain will be written after issuance.
-	This.certPath:=$path
-	return This
-
-
-Function setKeyPath($path : Text) : cs.acme.ACMEConfig
+	This:C1470.certPath:=$path
+	return This:C1470
+	
+	
+Function setKeyPath($path : Text) : cs:C1710.ACMEConfig
 	// Path where the private key PEM will be written. NEVER log this path's contents.
-	This.keyPath:=$path
-	return This
-
-
-Function setStorePath($path : Text) : cs.acme.ACMEConfig
+	This:C1470.keyPath:=$path
+	return This:C1470
+	
+	
+Function setStorePath($path : Text) : cs:C1710.ACMEConfig
 	// Path to the directory used for account key and order state persistence.
-	This.storePath:=$path
-	return This
-
-
-Function setChallengeStrategy($strategy : Text) : cs.acme.ACMEConfig
+	This:C1470.storePath:=$path
+	return This:C1470
+	
+	
+Function setChallengeStrategy($strategy : Text) : cs:C1710.ACMEConfig
 	// "webserver" | "webroot" | "listener" — see class header.
-	This.challengeStrategy:=$strategy
-	return This
-
-
-Function setWebrootPath($path : Text) : cs.acme.ACMEConfig
+	This:C1470.challengeStrategy:=$strategy
+	return This:C1470
+	
+	
+Function setWebrootPath($path : Text) : cs:C1710.ACMEConfig
 	// Directory from which a port-80 web server already serves files.
 	// Required when challengeStrategy = "webroot".
-	This.webrootPath:=$path
-	return This
-
-
-Function setPostRenewAction($action : Text) : cs.acme.ACMEConfig
+	This:C1470.webrootPath:=$path
+	return This:C1470
+	
+	
+Function setPostRenewAction($action : Text) : cs:C1710.ACMEConfig
 	// "restart" (default) or "none".
-	This.postRenewAction:=$action
-	return This
-
-
-Function setPostRenewFormula($formula : 4D.Function) : cs.acme.ACMEConfig
+	This:C1470.postRenewAction:=$action
+	return This:C1470
+	
+	
+Function setPostRenewFormula($formula : 4D:C1709.Function) : cs:C1710.ACMEConfig
 	// Formula called after successful renewal when postRenewAction = "none".
-	This.postRenewFormula:=$formula
-	return This
-
-
-Function setStaging($isStaging : Boolean) : cs.acme.ACMEConfig
+	This:C1470.postRenewFormula:=$formula
+	return This:C1470
+	
+	
+Function setStaging($isStaging : Boolean) : cs:C1710.ACMEConfig
 	// Pass False to target the production Let's Encrypt endpoint.
 	// Staging is the default; switching to production should be deliberate.
-	This.staging:=$isStaging
+	This:C1470.staging:=$isStaging
 	If ($isStaging)
-		This.directoryUrl:=This._urlStaging
-	Else
-		This.directoryUrl:=This._urlProduction
-	End if
-	return This
-
-
-Function setDirectoryUrl($url : Text) : cs.acme.ACMEConfig
+		This:C1470.directoryUrl:=This:C1470._urlStaging
+	Else 
+		This:C1470.directoryUrl:=This:C1470._urlProduction
+	End if 
+	return This:C1470
+	
+	
+Function setDirectoryUrl($url : Text) : cs:C1710.ACMEConfig
 	// Override with a custom ACME directory URL (e.g. a local Pebble instance).
-	This.directoryUrl:=$url
-	return This
-
-
-Function setTimeout($seconds : Integer) : cs.acme.ACMEConfig
-	This.timeout:=$seconds
-	return This
-
-
-Function setPollIntervalSecs($seconds : Integer) : cs.acme.ACMEConfig
-	This.pollIntervalSecs:=$seconds
-	return This
-
-
-Function setMaxPollAttempts($attempts : Integer) : cs.acme.ACMEConfig
-	This.maxPollAttempts:=$attempts
-	return This
-
-
-// ============================================================
-// VALIDATION
-// ============================================================
-
+	This:C1470.directoryUrl:=$url
+	return This:C1470
+	
+	
+Function setTimeout($seconds : Integer) : cs:C1710.ACMEConfig
+	This:C1470.timeout:=$seconds
+	return This:C1470
+	
+	
+Function setPollIntervalSecs($seconds : Integer) : cs:C1710.ACMEConfig
+	This:C1470.pollIntervalSecs:=$seconds
+	return This:C1470
+	
+	
+Function setMaxPollAttempts($attempts : Integer) : cs:C1710.ACMEConfig
+	This:C1470.maxPollAttempts:=$attempts
+	return This:C1470
+	
+	
+	// ============================================================
+	// VALIDATION
+	// ============================================================
+	
 Function isValid() : Boolean
 	// Quick sanity-check before attempting any ACME calls.
-	If (Length(This.contactEmail)=0)
-		return False
-	End if
-	If (This.identifiers.length=0)
-		return False
-	End if
-	If (Length(This.certPath)=0)
-		return False
-	End if
-	If (Length(This.keyPath)=0)
-		return False
-	End if
-	return True
-
-
+	If (Length:C16(This:C1470.contactEmail)=0)
+		return False:C215
+	End if 
+	If (This:C1470.identifiers.length=0)
+		return False:C215
+	End if 
+	If (Length:C16(This:C1470.certPath)=0)
+		return False:C215
+	End if 
+	If (Length:C16(This:C1470.keyPath)=0)
+		return False:C215
+	End if 
+	return True:C214
+	
+	
 Function validationError() : Text
 	// Human-readable description of the first config problem found.
-	If (Length(This.contactEmail)=0)
+	If (Length:C16(This:C1470.contactEmail)=0)
 		return "contactEmail is required"
-	End if
-	If (This.identifiers.length=0)
+	End if 
+	If (This:C1470.identifiers.length=0)
 		return "at least one identifier (hostname) is required"
-	End if
-	If (Length(This.certPath)=0)
+	End if 
+	If (Length:C16(This:C1470.certPath)=0)
 		return "certPath is required"
-	End if
-	If (Length(This.keyPath)=0)
+	End if 
+	If (Length:C16(This:C1470.keyPath)=0)
 		return "keyPath is required"
-	End if
+	End if 
 	return ""
-
-
+	
+	
 Function effectiveStorePath() : Text
 	// Returns storePath; if blank, derives a sensible default alongside certPath.
-	If (Length(This.storePath)>0)
-		return This.storePath
-	End if
+	If (Length:C16(This:C1470.storePath)>0)
+		return This:C1470.storePath
+	End if 
 	// Derive from certPath parent directory
-	var $vf : 4D.File
-	$vf:=File(This.certPath)
-	return $vf.parent.platformPath+"acme-state"+Folder separator
+	var $vf : 4D:C1709.File
+	$vf:=File:C1566(This:C1470.certPath; fk platform path:K87:2)
+	return $vf.parent.platformPath+"acme-state"+Folder separator:K24:12
+	

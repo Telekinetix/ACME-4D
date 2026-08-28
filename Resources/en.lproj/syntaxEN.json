@@ -1,0 +1,1241 @@
+{
+	"_method_": {
+		"ACME_Challenge_Handler": {
+			"Syntax": "**ACME_Challenge_Handler**( *vt_url* : Text )",
+			"Params": [
+				[
+					"vt_url",
+					"Text",
+					"->"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"cs.acme": {
+		"ACMEAccount": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig; *logger* : cs.acme.ACMELogger )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					],
+					[
+						"logger",
+						"cs.acme.ACMELogger",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMEClient": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMECertStore": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig; *logger* : cs.acme.ACMELogger )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					],
+					[
+						"logger",
+						"cs.acme.ACMELogger",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMETransport": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig; *logger* : cs.acme.ACMELogger )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					],
+					[
+						"logger",
+						"cs.acme.ACMELogger",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMEChallenge": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig; *logger* : cs.acme.ACMELogger )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					],
+					[
+						"logger",
+						"cs.acme.ACMELogger",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMEConfig": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"ACMECsr": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"ACMEJwsSigner": {
+			"new()": {
+				"Syntax": "**.new**( *vt_privateKeyPem* : Text )",
+				"Params": [
+					[
+						"vt_privateKeyPem",
+						"Text",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMELogger": {
+			"new()": {
+				"Syntax": "**.new**( *logLevel* : Integer )",
+				"Params": [
+					[
+						"logLevel",
+						"Integer",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMEOrder": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig; *logger* : cs.acme.ACMELogger; *transport* : cs.acme.ACMETransport; *challenge* : cs.acme.ACMEChallenge; *signer* : cs.acme.ACMEJwsSigner )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					],
+					[
+						"logger",
+						"cs.acme.ACMELogger",
+						"->"
+					],
+					[
+						"transport",
+						"cs.acme.ACMETransport",
+						"->"
+					],
+					[
+						"challenge",
+						"cs.acme.ACMEChallenge",
+						"->"
+					],
+					[
+						"signer",
+						"cs.acme.ACMEJwsSigner",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"ACMEScheduler": {
+			"new()": {
+				"Syntax": "**.new**( *config* : cs.acme.ACMEConfig; *logger* : cs.acme.ACMELogger; *client* : cs.acme.ACMEClient )",
+				"Params": [
+					[
+						"config",
+						"cs.acme.ACMEConfig",
+						"->"
+					],
+					[
+						"logger",
+						"cs.acme.ACMELogger",
+						"->"
+					],
+					[
+						"client",
+						"cs.acme.ACMEClient",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		}
+	},
+	"ACMEAccount": {
+		"load()": {
+			"Syntax": "**.load**() : Boolean",
+			"Params": [
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"register()": {
+			"Syntax": "**.register**( *transport* : cs.acme.ACMETransport; *signer* : cs.acme.ACMEJwsSigner ) : Object",
+			"Params": [
+				[
+					"transport",
+					"cs.acme.ACMETransport",
+					"->"
+				],
+				[
+					"signer",
+					"cs.acme.ACMEJwsSigner",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"save()": {
+			"Syntax": "**.save**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"generateKey()": {
+			"Syntax": "**.generateKey**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"privateKeyPem()": {
+			"Syntax": "**.privateKeyPem**() : Text",
+			"Params": [
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"isRegistered": {
+			"Syntax": "isRegistered : Boolean"
+		},
+		"accountUrl": {
+			"Syntax": "accountUrl : Text"
+		},
+		"email": {
+			"Syntax": "email : Text"
+		}
+	},
+	"ACMEClient": {
+		"version()": {
+			"Syntax": "**.version**() : Text",
+			"Params": [
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"runSchedulerCheck()": {
+			"Syntax": "**.runSchedulerCheck**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"setLogLevel()": {
+			"Syntax": "**.setLogLevel**( *vl_level* : Integer ) : cs.acme.ACMEClient",
+			"Params": [
+				[
+					"vl_level",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEClient",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"logger()": {
+			"Syntax": "**.logger**() : cs.acme.ACMELogger",
+			"Params": [
+				[
+					"",
+					"cs.acme.ACMELogger",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"stopScheduler()": {
+			"Syntax": "**.stopScheduler**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"startScheduler()": {
+			"Syntax": "**.startScheduler**() : cs.acme.ACMEClient",
+			"Params": [
+				[
+					"",
+					"cs.acme.ACMEClient",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"renewIfNeeded()": {
+			"Syntax": "**.renewIfNeeded**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setup()": {
+			"Syntax": "**.setup**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"renew()": {
+			"Syntax": "**.renew**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"status()": {
+			"Syntax": "**.status**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"handleChallengeRequest()": {
+			"Syntax": "**.handleChallengeRequest**( *vt_requestUrl* : Text ) : Object",
+			"Params": [
+				[
+					"vt_requestUrl",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMECertStore": {
+		"status()": {
+			"Syntax": "**.status**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"saveCertificate()": {
+			"Syntax": "**.saveCertificate**( *vt_certPem* : Text; *vt_keyPem* : Text ) : Object",
+			"Params": [
+				[
+					"vt_certPem",
+					"Text",
+					"->"
+				],
+				[
+					"vt_keyPem",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"needsRenewal()": {
+			"Syntax": "**.needsRenewal**() : Boolean",
+			"Params": [
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"recordAttempt()": {
+			"Syntax": "**.recordAttempt**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"certExists()": {
+			"Syntax": "**.certExists**() : Boolean",
+			"Params": [
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"updateAriRenewalWindow()": {
+			"Syntax": "**.updateAriRenewalWindow**( *vo_ariWindow* : Object )",
+			"Params": [
+				[
+					"vo_ariWindow",
+					"Object",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"triggerReload()": {
+			"Syntax": "**.triggerReload**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"recordSuccess()": {
+			"Syntax": "**.recordSuccess**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"recordNextCheck()": {
+			"Syntax": "**.recordNextCheck**( *vd_nextCheck* : Date )",
+			"Params": [
+				[
+					"vd_nextCheck",
+					"Date",
+					"->"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMETransport": {
+		"directory()": {
+			"Syntax": "**.directory**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"directoryUrl()": {
+			"Syntax": "**.directoryUrl**( *key* : Text ) : Text",
+			"Params": [
+				[
+					"key",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"freshNonce()": {
+			"Syntax": "**.freshNonce**() : Text",
+			"Params": [
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"post()": {
+			"Syntax": "**.post**( *vt_url* : Text; *vo_payload* : Object ) : Object",
+			"Params": [
+				[
+					"vt_url",
+					"Text",
+					"->"
+				],
+				[
+					"vo_payload",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"postAsGet()": {
+			"Syntax": "**.postAsGet**( *vt_url* : Text ) : Object",
+			"Params": [
+				[
+					"vt_url",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setSigner()": {
+			"Syntax": "**.setSigner**( *signer* : cs.acme.ACMEJwsSigner )",
+			"Params": [
+				[
+					"signer",
+					"cs.acme.ACMEJwsSigner",
+					"->"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMEChallenge": {
+		"serveWebServerChallenge()": {
+			"Syntax": "**.serveWebServerChallenge**( *vt_url* : Text; *vt_token* : Text ) : Text",
+			"Params": [
+				[
+					"vt_url",
+					"Text",
+					"->"
+				],
+				[
+					"vt_token",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"publish()": {
+			"Syntax": "**.publish**( *vt_token* : Text; *vt_keyAuth* : Text ) : Object",
+			"Params": [
+				[
+					"vt_token",
+					"Text",
+					"->"
+				],
+				[
+					"vt_keyAuth",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"unpublish()": {
+			"Syntax": "**.unpublish**( *vt_token* : Text )",
+			"Params": [
+				[
+					"vt_token",
+					"Text",
+					"->"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMEConfig": {
+		"setEmail()": {
+			"Syntax": "**.setEmail**( *email* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"email",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"addIdentifier()": {
+			"Syntax": "**.addIdentifier**( *hostname* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"hostname",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setChallengeStrategy()": {
+			"Syntax": "**.setChallengeStrategy**( *strategy* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"strategy",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setIdentifiers()": {
+			"Syntax": "**.setIdentifiers**( *hostnames* : Collection ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"hostnames",
+					"Collection",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setCertPath()": {
+			"Syntax": "**.setCertPath**( *path* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"path",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setStorePath()": {
+			"Syntax": "**.setStorePath**( *path* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"path",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setKeyPath()": {
+			"Syntax": "**.setKeyPath**( *path* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"path",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setWebrootPath()": {
+			"Syntax": "**.setWebrootPath**( *path* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"path",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setPostRenewFormula()": {
+			"Syntax": "**.setPostRenewFormula**( *formula* : 4D.Function ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"formula",
+					"4D.Function",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setPostRenewAction()": {
+			"Syntax": "**.setPostRenewAction**( *action* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"action",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setStaging()": {
+			"Syntax": "**.setStaging**( *isStaging* : Boolean ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"isStaging",
+					"Boolean",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setDirectoryUrl()": {
+			"Syntax": "**.setDirectoryUrl**( *url* : Text ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"url",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setTimeout()": {
+			"Syntax": "**.setTimeout**( *seconds* : Integer ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"seconds",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setPollIntervalSecs()": {
+			"Syntax": "**.setPollIntervalSecs**( *seconds* : Integer ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"seconds",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setMaxPollAttempts()": {
+			"Syntax": "**.setMaxPollAttempts**( *attempts* : Integer ) : cs.acme.ACMEConfig",
+			"Params": [
+				[
+					"attempts",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEConfig",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"isValid()": {
+			"Syntax": "**.isValid**() : Boolean",
+			"Params": [
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"validationError()": {
+			"Syntax": "**.validationError**() : Text",
+			"Params": [
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"effectiveStorePath()": {
+			"Syntax": "**.effectiveStorePath**() : Text",
+			"Params": [
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"storePath": {
+			"Syntax": "storePath : Text"
+		},
+		"keyPath": {
+			"Syntax": "keyPath : Text"
+		},
+		"directoryUrl": {
+			"Syntax": "directoryUrl : Text"
+		},
+		"contactEmail": {
+			"Syntax": "contactEmail : Text"
+		},
+		"challengeStrategy": {
+			"Syntax": "challengeStrategy : Text"
+		},
+		"identifiers": {
+			"Syntax": "identifiers : Collection"
+		},
+		"certPath": {
+			"Syntax": "certPath : Text"
+		},
+		"webrootPath": {
+			"Syntax": "webrootPath : Text"
+		},
+		"postRenewAction": {
+			"Syntax": "postRenewAction : Text"
+		},
+		"postRenewFormula": {
+			"Syntax": "postRenewFormula : 4D.Function"
+		},
+		"staging": {
+			"Syntax": "staging : Boolean"
+		},
+		"timeout": {
+			"Syntax": "timeout : Integer"
+		},
+		"maxPollAttempts": {
+			"Syntax": "maxPollAttempts : Integer"
+		},
+		"pollIntervalSecs": {
+			"Syntax": "pollIntervalSecs : Integer"
+		}
+	},
+	"ACMECsr": {
+		"build()": {
+			"Syntax": "**.build**( *vt_privateKeyPem* : Text; *vt_hostname* : Text ) : Text",
+			"Params": [
+				[
+					"vt_privateKeyPem",
+					"Text",
+					"->"
+				],
+				[
+					"vt_hostname",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMEJwsSigner": {
+		"setKid()": {
+			"Syntax": "**.setKid**( *vt_accountUrl* : Text )",
+			"Params": [
+				[
+					"vt_accountUrl",
+					"Text",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"sign()": {
+			"Syntax": "**.sign**( *vt_url* : Text; *vo_payload* : Object; *vt_nonce* : Text ) : Object",
+			"Params": [
+				[
+					"vt_url",
+					"Text",
+					"->"
+				],
+				[
+					"vo_payload",
+					"Object",
+					"->"
+				],
+				[
+					"vt_nonce",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"signPostAsGet()": {
+			"Syntax": "**.signPostAsGet**( *vt_url* : Text; *vt_nonce* : Text ) : Object",
+			"Params": [
+				[
+					"vt_url",
+					"Text",
+					"->"
+				],
+				[
+					"vt_nonce",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"publicJwk()": {
+			"Syntax": "**.publicJwk**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"jwkThumbprint()": {
+			"Syntax": "**.jwkThumbprint**() : Text",
+			"Params": [
+				[
+					"",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMELogger": {
+		"setLevel()": {
+			"Syntax": "**.setLevel**( *level* : Integer ) : cs.acme.ACMELogger",
+			"Params": [
+				[
+					"level",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMELogger",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"lastEntries()": {
+			"Syntax": "**.lastEntries**( *count* : Integer ) : Collection",
+			"Params": [
+				[
+					"count",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"Collection",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"error()": {
+			"Syntax": "**.error**( *message* : Text; *context* : Object )",
+			"Params": [
+				[
+					"message",
+					"Text",
+					"->"
+				],
+				[
+					"context",
+					"Object",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"entries()": {
+			"Syntax": "**.entries**() : Collection",
+			"Params": [
+				[
+					"",
+					"Collection",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"warn()": {
+			"Syntax": "**.warn**( *message* : Text; *context* : Object )",
+			"Params": [
+				[
+					"message",
+					"Text",
+					"->"
+				],
+				[
+					"context",
+					"Object",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"info()": {
+			"Syntax": "**.info**( *message* : Text; *context* : Object )",
+			"Params": [
+				[
+					"message",
+					"Text",
+					"->"
+				],
+				[
+					"context",
+					"Object",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"debug()": {
+			"Syntax": "**.debug**( *message* : Text; *context* : Object )",
+			"Params": [
+				[
+					"message",
+					"Text",
+					"->"
+				],
+				[
+					"context",
+					"Object",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"clearEntries()": {
+			"Syntax": "**.clearEntries**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"logToFile": {
+			"Syntax": "logToFile : Boolean"
+		},
+		"logFilePath": {
+			"Syntax": "logFilePath : Text"
+		},
+		"ERROR": {
+			"Syntax": "ERROR : Integer"
+		},
+		"WARN": {
+			"Syntax": "WARN : Integer"
+		},
+		"INFO": {
+			"Syntax": "INFO : Integer"
+		},
+		"DEBUG": {
+			"Syntax": "DEBUG : Integer"
+		}
+	},
+	"ACMEOrder": {
+		"issueCertificate()": {
+			"Syntax": "**.issueCertificate**( *vt_privateKeyPem* : Text ) : Object",
+			"Params": [
+				[
+					"vt_privateKeyPem",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"loadOrderState()": {
+			"Syntax": "**.loadOrderState**() : Boolean",
+			"Params": [
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"ACMEScheduler": {
+		"stop()": {
+			"Syntax": "**.stop**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"setCheckIntervalHours()": {
+			"Syntax": "**.setCheckIntervalHours**( *hours* : Integer ) : cs.acme.ACMEScheduler",
+			"Params": [
+				[
+					"hours",
+					"Integer",
+					"->"
+				],
+				[
+					"",
+					"cs.acme.ACMEScheduler",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"start()": {
+			"Syntax": "**.start**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"check()": {
+			"Syntax": "**.check**()",
+			"Params": [],
+			"Summary": ""
+		}
+	}
+}

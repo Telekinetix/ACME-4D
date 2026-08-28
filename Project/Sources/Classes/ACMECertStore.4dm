@@ -28,58 +28,58 @@
 // Private key file contents are never logged.
 // ----------------------------------------------------
 
-property _config : cs.acme.ACMEConfig
-property _logger : cs.acme.ACMELogger
+property _config : cs:C1710.ACMEConfig
+property _logger : cs:C1710.ACMELogger
 
 
-Class constructor($config : cs.acme.ACMEConfig; $logger : cs.acme.ACMELogger)
-	This._config:=$config
-	This._logger:=$logger
-
-
-// ============================================================
-// SAVE
-// ============================================================
-
+Class constructor($config : cs:C1710.ACMEConfig; $logger : cs:C1710.ACMELogger)
+	This:C1470._config:=$config
+	This:C1470._logger:=$logger
+	
+	
+	// ============================================================
+	// SAVE
+	// ============================================================
+	
 Function saveCertificate($vt_certPem : Text; $vt_keyPem : Text) : Object
 	// Write the certificate chain PEM and private key PEM to their configured paths.
 	// Returns { success: Boolean; error: Text }
 	// SECURITY: $vt_keyPem is never logged.
 	var $result : Object
-	$result:=New object("success"; False; "error"; "")
-
+	$result:=New object:C1471("success"; False:C215; "error"; "")
+	
 	// Ensure parent directories exist
-	var $vf_cert : 4D.File
-	var $vf_key : 4D.File
-	$vf_cert:=File(This._config.certPath)
-	$vf_key:=File(This._config.keyPath)
-
-	If (Not($vf_cert.parent.exists))
+	var $vf_cert : 4D:C1709.File
+	var $vf_key : 4D:C1709.File
+	$vf_cert:=File:C1566(This:C1470._config.certPath; fk platform path:K87:2)
+	$vf_key:=File:C1566(This:C1470._config.keyPath; fk platform path:K87:2)
+	
+	If (Not:C34($vf_cert.parent.exists))
 		Try
 			$vf_cert.parent.create()
 		Catch
-			$result.error:="Could not create cert directory: "+This._config.certPath
+			$result.error:="Could not create cert directory: "+This:C1470._config.certPath
 			return $result
 		End try
-	End if
-
-	If (Not($vf_key.parent.exists))
+	End if 
+	
+	If (Not:C34($vf_key.parent.exists))
 		Try
 			$vf_key.parent.create()
 		Catch
-			$result.error:="Could not create key directory: "+This._config.keyPath
+			$result.error:="Could not create key directory: "+This:C1470._config.keyPath
 			return $result
 		End try
-	End if
-
+	End if 
+	
 	// Write certificate (not secret — logged only by path, not content)
 	Try
 		$vf_cert.setText($vt_certPem; "utf-8")
 	Catch
-		$result.error:="Failed to write certificate file: "+This._config.certPath
+		$result.error:="Failed to write certificate file: "+This:C1470._config.certPath
 		return $result
 	End try
-
+	
 	// Write private key (secret — path only, content never logged)
 	Try
 		$vf_key.setText($vt_keyPem; "utf-8")
@@ -87,246 +87,246 @@ Function saveCertificate($vt_certPem : Text; $vt_keyPem : Text) : Object
 		$result.error:="Failed to write key file"
 		return $result
 	End try
-
+	
 	// Save metadata
-	This._saveMeta($vt_certPem)
-
-	This._logger.info("Certificate and key saved"; New object("certPath"; This._config.certPath))
-	$result.success:=True
+	This:C1470._saveMeta($vt_certPem)
+	
+	This:C1470._logger.info("Certificate and key saved"; New object:C1471("certPath"; This:C1470._config.certPath))
+	$result.success:=True:C214
 	return $result
-
-
-// ============================================================
-// LOAD / CHECK EXPIRY
-// ============================================================
-
+	
+	
+	// ============================================================
+	// LOAD / CHECK EXPIRY
+	// ============================================================
+	
 Function needsRenewal() : Boolean
 	// Returns True if the current certificate does not exist, has expired,
 	// or has passed the 2/3-lifetime renewal trigger point.
 	// If ARI renewal window data is available in metadata, uses that instead.
-
+	
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-
-	If ($vo_meta=Null)
+	$vo_meta:=This:C1470._loadMeta()
+	
+	If ($vo_meta=Null:C1517)
 		// No cert on disk — definitely need to issue one
-		return True
-	End if
-
+		return True:C214
+	End if 
+	
 	// Check ARI renewal window first (RFC 9773)
-	If (OB Is defined($vo_meta; "renewalWindow")) && ($vo_meta.renewalWindow#Null)
+	If (OB Is defined:C1231($vo_meta; "renewalWindow")) && ($vo_meta.renewalWindow#Null:C1517)
 		var $vt_ariStart : Text
-		$vt_ariStart:=String($vo_meta.renewalWindow.start)
-		If (Length($vt_ariStart)>0)
+		$vt_ariStart:=String:C10($vo_meta.renewalWindow.start)
+		If (Length:C16($vt_ariStart)>0)
 			var $vd_ariStart : Date
-			$vd_ariStart:=Date($vt_ariStart)
-			If (Current date>=$vd_ariStart)
-				This._logger.info("Renewal triggered by ARI window"; New object("ariStart"; $vt_ariStart))
-				return True
-			End if
+			$vd_ariStart:=Date:C102($vt_ariStart)
+			If (Current date:C33>=$vd_ariStart)
+				This:C1470._logger.info("Renewal triggered by ARI window"; New object:C1471("ariStart"; $vt_ariStart))
+				return True:C214
+			End if 
 			// ARI says not yet — trust it
-			return False
-		End if
-	End if
-
+			return False:C215
+		End if 
+	End if 
+	
 	// Fallback: time-based trigger at 2/3 of lifetime elapsed
-	If (OB Is defined($vo_meta; "notAfter")) && (OB Is defined($vo_meta; "issuedAt"))
+	If (OB Is defined:C1231($vo_meta; "notAfter")) && (OB Is defined:C1231($vo_meta; "issuedAt"))
 		var $vd_notAfter : Date
 		var $vd_issuedAt : Date
-		$vd_notAfter:=Date(String($vo_meta.notAfter))
-		$vd_issuedAt:=Date(String($vo_meta.issuedAt))
-
+		$vd_notAfter:=Date:C102(String:C10($vo_meta.notAfter))
+		$vd_issuedAt:=Date:C102(String:C10($vo_meta.issuedAt))
+		
 		var $vl_lifetime : Integer
 		var $vl_elapsed : Integer
 		$vl_lifetime:=$vd_notAfter-$vd_issuedAt
-		$vl_elapsed:=Current date-$vd_issuedAt
-
+		$vl_elapsed:=Current date:C33-$vd_issuedAt
+		
 		// Renew at 2/3 of lifetime + jitter (jitter applied in scheduler)
 		var $vl_threshold : Integer
 		$vl_threshold:=($vl_lifetime*2)\3  // integer division
-
+		
 		If ($vl_elapsed>=$vl_threshold)
-			This._logger.info("Renewal triggered by time-based threshold"; New object(\
+			This:C1470._logger.info("Renewal triggered by time-based threshold"; New object:C1471(\
 				"elapsed"; $vl_elapsed; \
 				"threshold"; $vl_threshold; \
 				"lifetime"; $vl_lifetime))
-			return True
-		End if
-	Else
+			return True:C214
+		End if 
+	Else 
 		// No dates in metadata — can't determine, so trigger renewal
-		return True
-	End if
-
-	return False
-
-
+		return True:C214
+	End if 
+	
+	return False:C215
+	
+	
 Function certExists() : Boolean
 	// Return True if the certificate file exists on disk.
-	var $vf_cert : 4D.File
-	$vf_cert:=File(This._config.certPath)
+	var $vf_cert : 4D:C1709.File
+	$vf_cert:=File:C1566(This:C1470._config.certPath; fk platform path:K87:2)
 	return $vf_cert.exists
-
-
-// ============================================================
-// POST-RENEWAL ACTION
-// ============================================================
-
+	
+	
+	// ============================================================
+	// POST-RENEWAL ACTION
+	// ============================================================
+	
 Function triggerReload() : Object
 	// Execute the configured post-renewal action.
 	// Returns { success: Boolean; error: Text }
 	var $result : Object
-	$result:=New object("success"; True; "error"; "")
-
-	Case of
-		: (This._config.postRenewAction="restart")
+	$result:=New object:C1471("success"; True:C214; "error"; "")
+	
+	Case of 
+		: (This:C1470._config.postRenewAction="restart")
 			// WEB STOP SERVER / WEB START SERVER — brief connection drop
-			This._logger.info("Restarting web server to load new certificate"; Null)
+			This:C1470._logger.info("Restarting web server to load new certificate"; Null:C1517)
 			Try
-				WEB STOP SERVER
-				DELAY PROCESS(Current process; 60)  // 1 second pause
-				WEB START SERVER
-				This._logger.info("Web server restarted"; Null)
+				WEB STOP SERVER:C618
+				DELAY PROCESS:C323(Current process:C322; 60)  // 1 second pause
+				WEB START SERVER:C617
+				This:C1470._logger.info("Web server restarted"; Null:C1517)
 			Catch
-				$result.success:=False
+				$result.success:=False:C215
 				$result.error:="Web server restart failed"
-				This._logger.error("Web server restart failed"; Null)
+				This:C1470._logger.error("Web server restart failed"; Null:C1517)
 			End try
-
-		: (This._config.postRenewAction="none")
+			
+		: (This:C1470._config.postRenewAction="none")
 			// No built-in action — call the formula if provided
-			If (This._config.postRenewFormula#Null)
+			If (This:C1470._config.postRenewFormula#Null:C1517)
 				Try
-					This._config.postRenewFormula.call(This; $result)
+					This:C1470._config.postRenewFormula.call(This:C1470; $result)
 				Catch
-					This._logger.warn("Post-renew formula raised an error"; Null)
+					This:C1470._logger.warn("Post-renew formula raised an error"; Null:C1517)
 				End try
-			End if
-
-		Else
-			This._logger.warn("Unknown postRenewAction: "+This._config.postRenewAction; Null)
-	End case
-
+			End if 
+			
+		Else 
+			This:C1470._logger.warn("Unknown postRenewAction: "+This:C1470._config.postRenewAction; Null:C1517)
+	End case 
+	
 	return $result
-
-
-// ============================================================
-// ARI RENEWAL WINDOW
-// ============================================================
-
+	
+	
+	// ============================================================
+	// ARI RENEWAL WINDOW
+	// ============================================================
+	
 Function updateAriRenewalWindow($vo_ariWindow : Object)
 	// Store the ARI-suggested renewal window from the renewalInfo response.
 	// $vo_ariWindow: { start: "<ISO8601>", end: "<ISO8601>" }
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-	If ($vo_meta=Null)
-		$vo_meta:=New object
-	End if
+	$vo_meta:=This:C1470._loadMeta()
+	If ($vo_meta=Null:C1517)
+		$vo_meta:=New object:C1471
+	End if 
 	$vo_meta.renewalWindow:=$vo_ariWindow
-	This._writeMeta($vo_meta)
-
-
-// ============================================================
-// STATUS SURFACE
-// ============================================================
-
+	This:C1470._writeMeta($vo_meta)
+	
+	
+	// ============================================================
+	// STATUS SURFACE
+	// ============================================================
+	
 Function status() : Object
 	// Return a status object for fleet monitoring.
 	//   { hostname, notAfter, issuedAt, lastSuccess, lastAttempt,
 	//     nextCheck, certExists, needsRenewal, certPath }
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-
+	$vo_meta:=This:C1470._loadMeta()
+	
 	var $vo_status : Object
-	$vo_status:=New object(\
-		"hostname"; String(This._config.identifiers[0]); \
-		"certPath"; This._config.certPath; \
-		"certExists"; This.certExists(); \
-		"needsRenewal"; This.needsRenewal(); \
+	$vo_status:=New object:C1471(\
+		"hostname"; String:C10(This:C1470._config.identifiers[0]); \
+		"certPath"; This:C1470._config.certPath; \
+		"certExists"; This:C1470.certExists(); \
+		"needsRenewal"; This:C1470.needsRenewal(); \
 		"notAfter"; ""; \
 		"issuedAt"; ""; \
 		"lastSuccess"; ""; \
 		"lastAttempt"; ""; \
 		"nextCheck"; "")
-
-	If ($vo_meta#Null)
-		$vo_status.notAfter:=String($vo_meta.notAfter)
-		$vo_status.issuedAt:=String($vo_meta.issuedAt)
-		$vo_status.lastSuccess:=String($vo_meta.lastSuccess)
-		$vo_status.lastAttempt:=String($vo_meta.lastAttempt)
-		$vo_status.nextCheck:=String($vo_meta.nextCheck)
-	End if
-
+	
+	If ($vo_meta#Null:C1517)
+		$vo_status.notAfter:=String:C10($vo_meta.notAfter)
+		$vo_status.issuedAt:=String:C10($vo_meta.issuedAt)
+		$vo_status.lastSuccess:=String:C10($vo_meta.lastSuccess)
+		$vo_status.lastAttempt:=String:C10($vo_meta.lastAttempt)
+		$vo_status.nextCheck:=String:C10($vo_meta.nextCheck)
+	End if 
+	
 	return $vo_status
-
-
+	
+	
 Function recordAttempt()
 	// Record a renewal attempt timestamp in metadata.
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-	If ($vo_meta=Null)
-		$vo_meta:=New object
-	End if
-	$vo_meta.lastAttempt:=String(Current date; ISO date; Current time)
-	This._writeMeta($vo_meta)
-
-
+	$vo_meta:=This:C1470._loadMeta()
+	If ($vo_meta=Null:C1517)
+		$vo_meta:=New object:C1471
+	End if 
+	$vo_meta.lastAttempt:=String:C10(Current date:C33; ISO date:K1:8; Current time:C178)
+	This:C1470._writeMeta($vo_meta)
+	
+	
 Function recordSuccess()
 	// Record a successful renewal timestamp in metadata.
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-	If ($vo_meta=Null)
-		$vo_meta:=New object
-	End if
-	$vo_meta.lastSuccess:=String(Current date; ISO date; Current time)
-	This._writeMeta($vo_meta)
-
-
+	$vo_meta:=This:C1470._loadMeta()
+	If ($vo_meta=Null:C1517)
+		$vo_meta:=New object:C1471
+	End if 
+	$vo_meta.lastSuccess:=String:C10(Current date:C33; ISO date:K1:8; Current time:C178)
+	This:C1470._writeMeta($vo_meta)
+	
+	
 Function recordNextCheck($vd_nextCheck : Date)
 	// Record the next scheduled check date in metadata.
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-	If ($vo_meta=Null)
-		$vo_meta:=New object
-	End if
-	$vo_meta.nextCheck:=String($vd_nextCheck; ISO date)
-	This._writeMeta($vo_meta)
-
-
-// ============================================================
-// INTERNAL — METADATA
-// ============================================================
-
+	$vo_meta:=This:C1470._loadMeta()
+	If ($vo_meta=Null:C1517)
+		$vo_meta:=New object:C1471
+	End if 
+	$vo_meta.nextCheck:=String:C10($vd_nextCheck; ISO date:K1:8)
+	This:C1470._writeMeta($vo_meta)
+	
+	
+	// ============================================================
+	// INTERNAL — METADATA
+	// ============================================================
+	
 Function _metaFilePath() : Text
-	var $vf_cert : 4D.File
-	$vf_cert:=File(This._config.certPath)
+	var $vf_cert : 4D:C1709.File
+	$vf_cert:=File:C1566(This:C1470._config.certPath; fk platform path:K87:2)
 	return $vf_cert.parent.platformPath+"acme-cert-meta.json"
-
-
+	
+	
 Function _loadMeta() : Object
-	var $vf_meta : 4D.File
-	$vf_meta:=File(This._metaFilePath())
-	If (Not($vf_meta.exists))
-		return Null
-	End if
+	var $vf_meta : 4D:C1709.File
+	$vf_meta:=File:C1566(This:C1470._metaFilePath(); fk platform path:K87:2)
+	If (Not:C34($vf_meta.exists))
+		return Null:C1517
+	End if 
 	Try
 		var $vt_json : Text
 		$vt_json:=$vf_meta.getText("utf-8")
-		return JSON Parse($vt_json)
+		return JSON Parse:C1218($vt_json)
 	Catch
-		return Null
+		return Null:C1517
 	End try
-
-
+	
+	
 Function _writeMeta($vo_meta : Object)
-	var $vf_meta : 4D.File
-	$vf_meta:=File(This._metaFilePath())
+	var $vf_meta : 4D:C1709.File
+	$vf_meta:=File:C1566(This:C1470._metaFilePath(); fk platform path:K87:2)
 	Try
-		$vf_meta.setText(JSON Stringify($vo_meta); "utf-8")
+		$vf_meta.setText(JSON Stringify:C1217($vo_meta); "utf-8")
 	Catch
-		This._logger.warn("Could not write cert metadata file"; Null)
+		This:C1470._logger.warn("Could not write cert metadata file"; Null:C1517)
 	End try
-
-
+	
+	
 Function _saveMeta($vt_certPem : Text)
 	// Extract not-after from the certificate PEM and write metadata.
 	// 4D does not offer native PEM parsing in v20.0; we derive the not-after
@@ -336,30 +336,30 @@ Function _saveMeta($vt_certPem : Text)
 	// For now, parse the certificate via a known workaround: export the cert
 	// to a temp file and read it back using certificateInfo if available,
 	// or fall back to an assumed 90-day validity from the current date.
-
+	
 	var $vo_meta : Object
-	$vo_meta:=This._loadMeta()
-	If ($vo_meta=Null)
-		$vo_meta:=New object
-	End if
-
-	$vo_meta.hostname:=String(This._config.identifiers[0])
-	$vo_meta.issuedAt:=String(Current date; ISO date)
-
+	$vo_meta:=This:C1470._loadMeta()
+	If ($vo_meta=Null:C1517)
+		$vo_meta:=New object:C1471
+	End if 
+	
+	$vo_meta.hostname:=String:C10(This:C1470._config.identifiers[0])
+	$vo_meta.issuedAt:=String:C10(Current date:C33; ISO date:K1:8)
+	
 	// Attempt to extract the certificate not-after date
 	var $vd_notAfter : Date
-	$vd_notAfter:=This._extractNotAfterFromPem($vt_certPem)
+	$vd_notAfter:=This:C1470._extractNotAfterFromPem($vt_certPem)
 	If ($vd_notAfter=!00-00-00!)
 		// Fallback: assume 90 days (Let's Encrypt standard)
-		$vd_notAfter:=Current date+90
-	End if
-
-	$vo_meta.notAfter:=String($vd_notAfter; ISO date)
-	$vo_meta.lastSuccess:=String(Current date; ISO date; Current time)
-
-	This._writeMeta($vo_meta)
-
-
+		$vd_notAfter:=Current date:C33+90
+	End if 
+	
+	$vo_meta.notAfter:=String:C10($vd_notAfter; ISO date:K1:8)
+	$vo_meta.lastSuccess:=String:C10(Current date:C33; ISO date:K1:8; Current time:C178)
+	
+	This:C1470._writeMeta($vo_meta)
+	
+	
 Function _extractNotAfterFromPem($vt_certPem : Text) : Date
 	// Attempt to parse the notAfter date from a PEM certificate.
 	// 4D v20.0 does not have a native PEM/X.509 parser.
@@ -372,6 +372,7 @@ Function _extractNotAfterFromPem($vt_certPem : Text) : Date
 	//       by decoding the base64 PEM body.
 	// For MVP, the fallback (90 days from today) is safe — the scheduler will
 	// check ARI and override this.
-
+	
 	// Return zero date to signal "not parsed"
 	return !00-00-00!
+	

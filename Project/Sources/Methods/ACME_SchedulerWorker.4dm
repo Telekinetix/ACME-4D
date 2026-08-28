@@ -1,3 +1,4 @@
+//%attributes = {}
 // ----------------------------------------------------
 // Method: ACME_SchedulerWorker
 // Worker method for the ACME renewal scheduler.
@@ -12,7 +13,7 @@
 // periodically (e.g. via a timer or On Startup event).
 //
 // Storage entry point: Storage.acme.clientRef is set by the host after
-// calling cs.acme.ACMEClient.new() and setup().
+// calling cs.ACMEClient.new() and setup().
 // Since Formula objects cannot be stored in shared Storage, the worker
 // uses CALL WORKER to re-enter the host's coordinator method.
 //
