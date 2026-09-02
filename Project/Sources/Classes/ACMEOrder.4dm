@@ -418,6 +418,10 @@ Function _downloadCertificate() : Text
 	End if 
 	
 	// Body may be text (PEM) or an object — expect text/PEM from LE
+	If (Value type:C1509($vo_response.body)=Is BLOB:K8:12)
+		return BLOB to text:C555($vo_response.body; UTF8 text without length:K22:17)
+	End if 
+	
 	If (Value type:C1509($vo_response.body)=Is text:K8:3)
 		return String:C10($vo_response.body)
 	End if 
