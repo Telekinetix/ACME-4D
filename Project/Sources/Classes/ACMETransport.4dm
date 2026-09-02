@@ -233,7 +233,9 @@ Function _executeWithRetry($vt_url : Text; $vo_options : Object; $vl_attempt : I
 	If (OB Is defined:C1231($vo_request.response.headers; "Location"))
 		$result.location:=String:C10($vo_request.response.headers["Location"])
 	End if 
-	
+	If (OB Is defined:C1231($vo_request.response.headers; "location"))
+		$result.location:=String:C10($vo_request.response.headers["location"])
+	End if 
 	// Parse body — expect JSON for most ACME responses
 	var $vt_body : Text
 	var $vo_body : Object
