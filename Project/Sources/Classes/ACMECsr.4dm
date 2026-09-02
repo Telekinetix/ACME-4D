@@ -83,7 +83,7 @@ Function build($vt_privateKeyPem : Text; $vt_hostname : Text) : Text
 	// 5. Wrap into the outer CertificationRequest SEQUENCE
 	var $vb_csr : Blob
 	$vb_csr:=This:C1470._buildCertificationRequest($vb_cri; $vb_signature)
-	
+
 	// 6. Base64url-encode the DER
 	return This:C1470._base64urlBlob($vb_csr)
 	
@@ -366,10 +366,8 @@ Function _derExtensionRequestAttr($vt_hostname : Text) : Blob
 	$vb_oidER:=This:C1470._derOid(New collection:C1472(1; 2; 840; 113549; 1; 9; 14))
 	
 	// Attribute value SET { SEQUENCE { Extensions } }
-	var $vb_attrValInner : Blob
-	$vb_attrValInner:=This:C1470._derSequence($vb_extensions)
 	var $vb_attrVal : Blob
-	$vb_attrVal:=This:C1470._derSet($vb_attrValInner)
+	$vb_attrVal:=This:C1470._derSet($vb_extensions)
 	
 	// Attribute SEQUENCE { OID extensionRequest, SET { ... } }
 	var $vb_attrInner : Blob
