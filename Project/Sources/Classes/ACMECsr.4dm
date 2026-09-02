@@ -288,19 +288,24 @@ Function _derSubjectCN($vt_cn : Text) : Blob
 	// Build the subject Name: SEQUENCE { SET { SEQUENCE { OID-cn, UTF8String cn } } }
 	// OID for commonName: 2.5.4.3
 	var $vb_oidCN : Blob
-	$vb_oidCN:=This:C1470._derOid(New collection:C1472(2; 5; 4; 3))
+	$vb_oidCN:=This._derOid(New collection(2; 5; 4; 3))
 	
 	var $vb_cnStr : Blob
-	$vb_cnStr:=This:C1470._derUtf8String($vt_cn)
+	$vb_cnStr:=This._derUtf8String($vt_cn)
 	
+	// SEQUENCE { OID, UTF8String }
 	var $vb_attrSeq : Blob
-	COPY BLOB:C558($vb_oidCN; $vb_attrSeq; 0; BLOB size:C605($vb_attrSeq); BLOB size:C605($vb_oidCN))
-	COPY BLOB:C558($vb_cnStr; $vb_attrSeq; 0; BLOB size:C605($vb_attrSeq); BLOB size:C605($vb_cnStr))
+	COPY BLOB($vb_oidCN; $vb_attrSeq; 0; BLOB size($vb_attrSeq); BLOB size($vb_oidCN))
+	COPY BLOB($vb_cnStr; $vb_attrSeq; 0; BLOB size($vb_attrSeq); BLOB size($vb_cnStr))
+	var $vb_attrSeqWrapped : Blob
+	$vb_attrSeqWrapped:=This._derSequence($vb_attrSeq)
 	
+	// SET { SEQUENCE {...} }
 	var $vb_attrSet : Blob
-	$vb_attrSet:=This:C1470._derSet(This:C1470._derSequence($vb_attrSeq))
+	$vb_attrSet:=This._derSet($vb_attrSeqWrapped)
 	
-	return This:C1470._derSequence($vb_attrSet)
+	// SEQUENCE { SET {...} }
+	return This._derSequence($vb_attrSet)
 	
 	
 Function _derAlgorithmIdentifierSha256WithRSA() : Blob
@@ -406,31 +411,21 @@ Function _publicKeyDerFromPem($vo_cryptoKey : 4D:C1709.CryptoKey) : Blob
 	
 	
 Function _signBlob($vo_cryptoKey : 4D:C1709.CryptoKey; $vb_data : Blob) : Text
-	// Sign raw bytes using RS256; returns base64-encoded signature.
-	// 4D.CryptoKey.sign() takes Text input — we pass the base64 of the data
-	// and request base64 output, then the caller decodes the signature.
-	// NOTE: This is a workaround for the absence of a raw-blob sign API.
-	// The ACME spec requires signing the raw DER bytes. We encode the CRI
-	// to base64, sign that string, then get the signature bytes back.
-	//
-	// IMPORTANT: This approach is INCORRECT for PKCS#10 — the signature must
-	// cover the raw DER bytes of CertificationRequestInfo, not the base64.
-	// This is a known spike issue raised for resolution (see §7.1 of brief).
-	// For correctness, this needs 4D support for signing arbitrary blobs,
-	// or an external SHA256 hash of the DER followed by RSA sign of the hash.
-	//
-	// As an interim workaround until resolved: we convert the DER to text
-	// via a reversible encoding and sign that. This does NOT produce a valid
-	// CSR for production use. Flag this as a blocker.
-	//
-	// TODO: Resolve with platform team — confirm if sign() can accept blob
-	// input in a future 4D v20 patch, or use the Generate digest + raw RSA path.
+	// Sign raw DER bytes using RSASSA-PKCS1-v1_5 with SHA-256 (RS256).
+	// Returns base64-encoded signature.
+	// 4D.CryptoKey.sign() accepts a Blob directly; the RSA algorithm is
+	// determined by the key type, not the options object.
 	
-	var $vt_dataB64 : Text
-	var $vo_signOpts : Object
-	BASE64 ENCODE:C895($vb_data; $vt_dataB64; *)
-	$vo_signOpts:=New object:C1471("hash"; "SHA256"; "encoding"; "Base64")
-	return Try($vo_cryptoKey.sign($vt_dataB64; $vo_signOpts))
+	var $vt_signature : Text
+	Try
+		$vt_signature:=$vo_cryptoKey.sign($vb_data; New object(\
+			"hash"; "SHA256"; \
+			"encoding"; "Base64"))
+	Catch
+		return ""
+	End try
+	
+	return $vt_signature
 	
 	
 	// ============================================================
