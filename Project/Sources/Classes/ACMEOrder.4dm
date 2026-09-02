@@ -418,7 +418,8 @@ Function _downloadCertificate() : Text
 	End if 
 	
 	// Body may be text (PEM) or an object — expect text/PEM from LE
-	If (Value type:C1509($vo_response.body)=Is BLOB:K8:12)
+	// For some reason 4D returns '38' or 'is Object' when testing value type on blob data stored in an object, so testing both just in case.
+	If (Value type:C1509($vo_response.body)=Is BLOB:K8:12) || (Value type:C1509($vo_response.body)=Is object:K8:27)
 		return BLOB to text:C555($vo_response.body; UTF8 text without length:K22:17)
 	End if 
 	
