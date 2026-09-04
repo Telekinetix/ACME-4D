@@ -126,9 +126,25 @@ $transport.setSigner($signer)
 
 Transient failures (network error / timeout / HTTP 5xx) are retried up to 3 times with 2-second and 4-second back-off delays. Non-transient errors (4xx) are returned immediately — retrying a rejected payload wastes quota.
 
+> **The retry path does not work for signed requests.** `_executeWithRetry()` re-invokes itself with the
+> same `$vo_options`, and for a signed request that object already contains the built JWS — including the
+> nonce that was just consumed. RFC 8555 nonces are strictly single-use, so the retry comes back as
+> `urn:ietf:params:acme:error:badNonce`. Retries work correctly only for `_rawGet()` (the directory
+> fetch), which carries no JWS. A fix means either moving the retry loop above JWS construction so each
+> attempt gets a fresh nonce, or special-casing `badNonce` and re-signing.
+
 ## Nonce Management
 
-The transport captures the `Replay-Nonce` header from every response and caches it for the next request. This avoids an extra round-trip on each call. If the CA returns `badNonce` the caller should discard the nonce and retry (handled by the back-off path).
+The intent is that the transport captures the `Replay-Nonce` header from every response and caches it
+for the next request, avoiding an extra round-trip per call.
+
+> **The cache is never populated.** `_captureNonce()` checks only the capitalised `"Replay-Nonce"` key,
+> but 4D surfaces the header lower-cased in practice — which is why `freshNonce()` and the `Location`
+> capture both check both spellings. `_captureNonce()` was not given the same treatment, so every
+> signed request falls through to the `HEAD newNonce` path, roughly doubling the request count against
+> the CA. Functionally correct, wasteful of rate-limit budget.
+
+Both items are tracked in [`docs/review-findings.md`](../../docs/review-findings.md).
 
 ## Internal Methods
 

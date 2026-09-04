@@ -60,6 +60,12 @@ $cfg.setIdentifiers(New collection("host1.example.com"; "host2.example.com"))
 
 `addIdentifier` appends one hostname; `setIdentifiers` replaces the collection. The first identifier becomes the certificate CN.
 
+> **Configure exactly one identifier.** Multi-name (SAN) certificates are future work, and nothing here
+> currently stops you from setting several. If you do, `ACMEOrder._createOrder()` sends them all and the
+> CA authorizes each one — but `_finalize()` builds the CSR from `identifiers[0]` alone, so finalize is
+> rejected for a CSR/identifier mismatch *after* every HTTP-01 validation has already run. `isValid()`
+> does not catch this. Tracked in [`docs/review-findings.md`](../../docs/review-findings.md).
+
 ---
 
 ### setCertPath / setKeyPath
@@ -174,6 +180,10 @@ End if
 | | Type | Description |
 |---|---|---|
 | **Return** | Boolean | `True` when all required fields are populated |
+
+Checks `contactEmail`, `identifiers` (non-empty), `certPath` and `keyPath`. It does **not** validate
+`challengeStrategy`, `webrootPath` (even when the strategy is `"webroot"`), `postRenewAction`, or the
+single-identifier limit described above — those failures surface later, at publish or finalize time.
 
 ---
 

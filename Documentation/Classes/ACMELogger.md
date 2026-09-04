@@ -119,8 +119,23 @@ $log.logToFile:=True
 $log.logFilePath:="/var/log/acme/acme.log"
 ```
 
-When enabled, entries are appended as newline-delimited JSON. File write errors are silently swallowed to avoid letting a logging failure interrupt a renewal.
+The intent is that entries are appended as newline-delimited JSON. File write errors are silently
+swallowed so that a logging failure cannot interrupt a renewal.
+
+> **The file sink is unverified and probably does not work.** `_log()` calls
+> `$vf.setText($vt_line; "utf-8"; File append)`, but `4D.File.setText()` takes
+> `(text {; charSet {; breakMode}})` — there is no append mode, and `File append` is not a 4D constant.
+> (Every other constant in the codebase carries its token, e.g. `fk platform path:K87:2`; this one does
+> not, because 4D did not recognise it.) The failure is invisible: `logToFile` defaults to `False`, and
+> if you switch it on, the surrounding `Catch` swallows the error by design and the sink simply never
+> writes. Leave `logToFile` off until this is fixed — see
+> [`docs/review-findings.md`](../../docs/review-findings.md).
 
 ## 4D Event Log Integration
 
-Entries at `INFO` level and below are also emitted to the 4D application log via `LOG EVENT` with `wInformation`. `DEBUG` entries are only written to the in-memory buffer (and the optional file sink) — they do not appear in the 4D log.
+Entries at `INFO` level and below (i.e. `ERROR`, `WARN`, `INFO`) are also emitted via
+`LOG EVENT(Into 4D commands log; …)` with `wInformation`. `DEBUG` entries are only written to the
+in-memory buffer (and the optional file sink) — they do not appear in the 4D log.
+
+> Note the destination: entries go to the **4D commands log**, not the current request log. If nothing
+> appears where you expect it, check that command logging is enabled for the host.

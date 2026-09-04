@@ -52,6 +52,7 @@ $result:=$acme.renew()
 | `_challenge` | `cs.acme.ACMEChallenge` | HTTP-01 challenge publisher |
 | `_certStore` | `cs.acme.ACMECertStore` | Certificate and key persistence |
 | `_scheduler` | `cs.acme.ACMEScheduler` | Renewal scheduler (Null until `startScheduler()`) |
+| `_isSetup` | Boolean | `True` once `setup()` has completed successfully; `renew()` calls `setup()` itself if this is still `False` |
 | `_version` | Text | Component version string |
 
 ## Public Functions
@@ -230,4 +231,11 @@ All public methods return:
 
 ## Internal Methods
 
-`_regenerateKeyViaJwks` — fallback key regeneration when JWK extraction fails on a loaded PEM key. Safe only before account registration.
+`_regenerateKeyViaJwks` — fallback invoked when `publicJwk()` returns `Null` for a loaded PEM key. It
+refuses to run once the account is registered (rotating the account key after registration would orphan
+the account), then generates a fresh 2048-bit RSA key and rebuilds the signer.
+
+> The name is a leftover. There is no JWKS path — 4D exposes no JWK export at all. The regenerated key
+> is turned into a JWK by the same PEM → DER → ASN.1 parse that
+> [`ACMEJwsSigner`](ACMEJwsSigner.md) uses for any other key, so this fallback only helps if the first
+> parse failed for a reason specific to the old key material.

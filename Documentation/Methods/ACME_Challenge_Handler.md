@@ -8,22 +8,34 @@ Use this method as an alternative to calling `ACMEClient.handleChallengeRequest(
 
 ## Usage
 
-Call from the host application's `On Web Connection` database method whenever the incoming URL matches the ACME challenge path:
+The method declares `#DECLARE($vt_url : Text)` — **the request URL must be passed in.** Call it from
+the host application's `On Web Connection` database method whenever the incoming URL matches the ACME
+challenge path, passing `$1`:
 
 ```4d
 // In On Web Connection:
 If (Match regex("^\/.well-known\/acme-challenge\/"; $1; 1; $pos; $len))
-    ACME_Challenge_Handler
+    ACME_Challenge_Handler($1)
     return
 End if
 ```
 
-The method reads `WEB GET HTTP HEADER("url")` to get the request URL, or falls back to `$1` (the URL parameter passed to `On Web Connection`). It then:
+> Calling it bare, as `ACME_Challenge_Handler`, leaves `$vt_url` empty — every challenge request then
+> takes the not-found branch and validation fails. Earlier revisions of this page and of the README
+> showed the parameterless form; it was wrong.
 
-1. Extracts the token from the URL path after `/.well-known/acme-challenge/`.
+The method does **not** read the URL from `WEB GET HTTP HEADER` or from any web context — the parameter
+is the only source. It then:
+
+1. Extracts the token from the URL path after `/.well-known/acme-challenge/`, stripping any query string.
 2. Looks up `Storage.acme.challenges[<token>]`.
 3. If found: sends the `keyAuthorization` text as `text/plain` with `WEB SEND TEXT`.
-4. If not found: redirects to `/` (the CA will receive a 404-equivalent response).
+4. If not found: calls `WEB SEND HTTP REDIRECT("/")`.
+
+> Step 4 issues an HTTP **302, not a 404**. A redirect on `/.well-known/acme-challenge/*` is worth
+> avoiding — some ACME servers follow it and then report a body mismatch rather than a clean
+> "not found", which makes a misconfiguration harder to diagnose. Returning a real 404 would be
+> clearer. Tracked in [`docs/review-findings.md`](../../docs/review-findings.md).
 
 ## Storage Dependency
 

@@ -63,10 +63,14 @@ $result:=$store.saveCertificate($certPem; $keyPem)
 ### needsRenewal
 
 Returns `True` if the certificate should be renewed. Checks in order:
-1. No cert file on disk → renew.
-2. ARI renewal window in metadata with a start date ≤ today → renew.
-3. No ARI data → time-based fallback: renew at ≥ 2/3 of lifetime elapsed.
-4. No date metadata → renew (safe default).
+1. No `acme-cert-meta.json` → renew. (Note: this keys off the **metadata** file, not the certificate
+   file. A cert on disk with no metadata beside it is treated as needing renewal, which is the safe
+   direction; use `certExists()` if you need the file itself.)
+2. ARI renewal window present in metadata → its `start` date decides, and **nothing else is consulted**.
+   `start` ≤ today renews; `start` in the future returns `False` immediately. Since ARI is not yet
+   active (see [`ACMEScheduler`](ACMEScheduler.md)), no `renewalWindow` is ever written in practice.
+3. No ARI data → time-based fallback: renew at ≥ 2/3 of lifetime elapsed, from `issuedAt` to `notAfter`.
+4. Metadata present but missing `notAfter` / `issuedAt` → renew (safe default).
 
 ```4d
 If ($store.needsRenewal())
@@ -159,10 +163,21 @@ $store.recordNextCheck(Current date+1)
 
 ## Known Limitation — `notAfter` Parsing
 
-`_extractNotAfterFromPem()` is a stub. 4D v20.0 does not include a native PEM/X.509 parser, so the `notAfter` date cannot be parsed directly from the certificate. The current fallback assumes a 90-day validity from the issue date.
+`_extractNotAfterFromPem()` is a stub: it returns `!00-00-00!` unconditionally. 4D includes no native
+PEM/X.509 parser, so `_saveMeta()` falls back to **assuming 90 days from the issue date** for every
+certificate it writes.
 
-The correct fix is one of:
-- Use a 4D v20 R-release API for certificate info (if available).
-- Parse the `notAfter` UTCTime / GeneralizedTime field from the certificate DER directly (shares the ASN.1 infrastructure already present in `ACMECsr`).
+**This is now the component's most consequential gap, not a precision nicety.** The original reasoning
+was that the ARI renewal window would override the time-based trigger and make the exact `notAfter`
+unimportant. ARI is not active (`_buildAriUrl()` returns `""` — see [`ACMEScheduler`](ACMEScheduler.md)),
+so the ⅔-of-assumed-90-days threshold — day 60 — is the *only* renewal trigger in the component today.
 
-The ARI renewal window (when provided by the CA) overrides the time-based trigger and makes the precise `notAfter` value less critical.
+That is safe while the CA issues 90-day certificates. It stops being safe the moment it issues anything
+shorter: under the SC-081v3 schedule a 47-day certificate would expire on day 47, seventeen days before
+the component decides to renew it.
+
+The fix is to parse the `notAfter` `UTCTime` / `GeneralizedTime` field from the certificate DER. The
+ASN.1 reader in [`ACMEJwsSigner`](ACMEJwsSigner.md) (`_derExpectTag`, `_derReadLength`,
+`_derReadInteger`) already provides most of the machinery, and the same work unblocks the ARI URL.
+
+Tracked in [`docs/review-findings.md`](../../docs/review-findings.md).

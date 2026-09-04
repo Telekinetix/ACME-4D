@@ -109,14 +109,57 @@ $jwk:=$signer.publicJwk()
 
 Returns the cached public JWK object. Used in the `protected` header for `newAccount` requests (JWK mode).
 
-> **Spike note:** JWK extraction from an externally provided PEM key requires `getPublicKey({format:"JWKS"})` — available in some 4D v20 builds. If this returns `Null`, `ACMEClient` falls back to regenerating the account key pair via the native `type:"RSA"` CryptoKey path which does support JWKS export. See the kickoff §7.1.
+## JWK Extraction (former spike — resolved)
+
+4D exposes no JWK or JWKS export: [`getPublicKey()`](https://developer.4d.com/docs/API/CryptoKeyClass)
+returns PEM and nothing else. `_buildPublicJwk()` therefore derives the JWK itself:
+
+1. `getPublicKey()` → PEM.
+2. `_pemToDer()` strips the `-----BEGIN/END PUBLIC KEY-----` armour and whitespace, then
+   `BASE64 DECODE` to raw DER.
+3. `_parseRsaPublicKey()` walks the `SubjectPublicKeyInfo` ASN.1 structure — outer `SEQUENCE`, skip
+   the `AlgorithmIdentifier` `SEQUENCE`, `BIT STRING` plus its unused-bits byte, inner `SEQUENCE`,
+   then two `INTEGER`s — and returns the modulus and exponent.
+4. Each integer is base64url-encoded (with the DER leading-zero pad stripped) into `n` and `e`.
+
+This runs once, in the constructor, and the result is cached in `_publicJwk`.
+
+> `ACMEClient._regenerateKeyViaJwks()` remains as a fallback for the case where `publicJwk()` returns
+> `Null`, but its name is now misleading — there is no JWKS path. It generates a fresh account key and
+> re-parses it by exactly the route above. It refuses to run once the account is registered.
 
 ## Algorithm
 
 - **RS256** — RSASSA-PKCS1-v1_5 with SHA-256, via `4D.CryptoKey.sign()`.
-- `4D.CryptoKey.sign()` with `{ algorithm: "RS256", encoding: "Base64URL" }` returns the signature as base64url directly.
 - All other base64url encoding (payloads, protected headers) is performed by post-processing standard base64: `+`→`-`, `/`→`_`, padding stripped.
+
+> **Inconsistency worth knowing about.** `_buildJws()` passes
+> `{ algorithm: "RS256", encoding: "Base64URL" }`, but the
+> [4D.CryptoKey documentation](https://developer.4d.com/docs/API/CryptoKeyClass) lists the `.sign()`
+> option keys as `hash`, `encoding` and `pss` — `algorithm` is not among them. `ACMECsr._signBlob()`
+> correctly uses `hash: "SHA256"`. The JWS path works because SHA-256 is the default digest, not
+> because the option is being honoured. Tracked in [`docs/review-findings.md`](../../docs/review-findings.md).
 
 ## Internal Methods
 
-`_buildJws`, `_buildPublicJwk`, `_base64url`, `_base64urlBlob`, `_sha256Blob` — encoding and signing pipeline. The SHA-256 digest for the JWK thumbprint uses 4D's `Generate digest` with hex output, then hex-decodes to a blob for base64url encoding.
+| Function | Purpose |
+|----------|---------|
+| `_buildJws` | Assembles the protected header (JWK or KID mode), joins `protected.payload`, signs, returns the flattened JWS |
+| `_buildPublicJwk` | PEM → DER → `{ kty, n, e }`; called once from the constructor |
+| `_pemToDer` | Strips PEM armour and base64-decodes to a DER blob |
+| `_parseRsaPublicKey` | Walks `SubjectPublicKeyInfo` and returns base64url `n` and `e` |
+| `_derExpectTag` | Asserts the byte at the cursor is the expected ASN.1 tag, advances past it |
+| `_derReadLength` | Reads short- and long-form DER length encodings (up to 4 length bytes); returns `-1` on error |
+| `_derReadInteger` | Reads a DER `INTEGER` into a blob, stripping the positive-number leading zero |
+| `_base64url` | Base64url-encodes UTF-8 text |
+| `_base64urlBlob` | Base64url-encodes a blob (standard base64, then `+`→`-`, `/`→`_`, strip `=`) |
+| `_sha256Blob` | SHA-256 digest of a blob, returned as **base64url Text** — uses `Generate digest` (hex), then `_hexToInt` per pair to rebuild the digest blob |
+| `_hexToInt` | Converts a two-character hex string to `0`–`255` |
+
+> The DER reader keeps its cursor in the instance property `_pos` rather than threading it through
+> the helpers. It is reset at the start of `_parseRsaPublicKey()` and only ever used from the
+> constructor, so it is safe as written — but the `_der*` helpers are not reentrant.
+
+> `_buildPublicJwk` is followed in the source by a large commented-out block describing an abandoned
+> `getPublicKey({format:"JWKS"})` approach, including a "SPIKE RESULT" note that contradicts the
+> working implementation above it. Ignore it; it is dead.
