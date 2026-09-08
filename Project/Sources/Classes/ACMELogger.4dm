@@ -137,7 +137,7 @@ Function _log($numLevel : Integer; $levelLabel : Text; $message : Text; $context
 		$vf:=File:C1566(This:C1470.logFilePath; fk platform path:K87:2)
 		$vt_line:=JSON Stringify:C1217($entry)+Char:C90(10)
 		Try
-			$vf.setText($vt_line; "utf-8"; File append)
+			$vf.setText($vf.getText("utf-8")+$vt_line; "utf-8")
 		Catch
 			// Swallow file write errors — don't let logging kill the cert renewal
 		End try
