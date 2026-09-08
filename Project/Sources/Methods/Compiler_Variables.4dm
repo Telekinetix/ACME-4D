@@ -6,5 +6,7 @@
 // discoverability. Only process-level error-trap variables live here —
 // every other variable is declared locally at point of use.
 // ----------------------------------------------------
-C_LONGINT(vl_acmeHttpError)
-C_TEXT(vt_acmeHttpError)
+C_LONGINT:C283(vl_acmeHttpError)
+C_TEXT:C284(vt_acmeHttpError)
+
+C_LONGINT:C283(wInformation)
