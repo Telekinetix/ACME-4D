@@ -25,6 +25,11 @@ $order:=cs.acme.ACMEOrder.new($config; $logger; $transport; $challenge; $signer)
 
 Runs the complete issuance flow. This is the only method the host needs to call directly (via `ACMEClient.renew()`).
 
+> **One identifier only.** `_createOrder()` sends every hostname in `ACMEConfig.identifiers` and the CA
+> returns an authorization for each, but `_finalize()` builds the CSR from `identifiers[0]` alone. With
+> more than one identifier configured, the full HTTP-01 dance runs for all of them and *then* finalize
+> is rejected for a CSR/identifier mismatch. Configure exactly one hostname per client instance.
+
 ```4d
 var $result : Object
 $result:=$order.issueCertificate($certPrivateKeyPem)
@@ -40,7 +45,11 @@ End if
 
 ### loadOrderState
 
-Attempts to load a previously-persisted order state from disk. Returns `True` if a resumable order was found for the first configured identifier. Called by `ACMEClient` to detect and resume interrupted runs.
+Attempts to load a previously-persisted order state from disk. Returns `True` if a resumable order was found for the first configured identifier.
+
+> **Not currently called by anything.** The function is complete and correct, but `ACMEClient.renew()`
+> constructs a fresh `ACMEOrder` and always begins at `_createOrder()`. Resume is available to a caller
+> that wants it, but the component does not use it — see the State Persistence note below.
 
 ```4d
 var $resumed : Boolean
@@ -65,7 +74,7 @@ POST-as-GET certUrl   ← download PEM chain
 
 ## State Persistence
 
-After each significant step, the order state is written to:
+The order state is written after `_createOrder()` and again after `_pollOrder()` succeeds, to:
 
 ```
 <storePath>/order-<sanitised-hostname>.json
@@ -83,7 +92,12 @@ Schema:
 }
 ```
 
-If a renewal is interrupted mid-flight, `ACMEClient.renew()` detects the stale state file on the next run and can resume from the finalize step rather than starting a new order.
+> **Resume is not wired up.** The file is written but never read back. An interrupted renewal starts a
+> brand-new order on the next run, and stale `order-<host>.json` files accumulate without ever being
+> cleaned up. This is not dangerous — Let's Encrypt tolerates abandoned pending orders, and
+> `_processAuthorization()` short-circuits on authorizations that are already `valid` — but it consumes
+> `newOrder` rate-limit budget, and it means the "crash-safe / interrupted runs resume cleanly" claim
+> is not yet met. Tracked in [`docs/review-findings.md`](../../docs/review-findings.md).
 
 ## Polling
 

@@ -16,13 +16,13 @@
 // Minimum platform: 4D v20.0 LTS
 //
 // Example usage (host application startup):
-//   var $cfg : cs.ACMEConfig
-//   $cfg:=cs.ACMEConfig.new()
+//   var $cfg : cs.acme.ACMEConfig
+//   $cfg:=cs.acme.ACMEConfig.new()
 //   $cfg.setEmail("admin@example.com").addIdentifier("myhost.example.com")
 //   $cfg.setCertPath("/ssl/cert.pem").setKeyPath("/ssl/key.pem")
 //   $cfg.setStaging(False)
-//   var $acme : cs.ACMEClient
-//   $acme:=cs.ACMEClient.new($cfg)
+//   var $acme : cs.acme.ACMEClient
+//   $acme:=cs.acme.ACMEClient.new($cfg)
 //   $acme.setup()
 //   $acme.startScheduler()
 //

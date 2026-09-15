@@ -10,3 +10,5 @@ C_LONGINT:C283(vl_acmeHttpError)
 C_TEXT:C284(vt_acmeHttpError)
 
 C_LONGINT:C283(wInformation)
+C_LONGINT:C283(vl_acmeError)
+C_TEXT:C284(vt_acmeError)

@@ -24,7 +24,6 @@
 //   3. Stores the client reference in a process variable
 //   4. Calls startScheduler()
 // ----------------------------------------------------
-//%attributes = {}
 
 // This method is a placeholder entry point.
 // The host application's startup method creates and holds the ACMEClient

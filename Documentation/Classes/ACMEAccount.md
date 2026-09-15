@@ -17,7 +17,7 @@ The account key is a 2048-bit RSA key pair generated once per deployment and per
 {
   "accountUrl": "https://acme-v02.api.letsencrypt.org/acme/acct/123456",
   "email":      "admin@example.com",
-  "createdAt":  "2026-03-15",
+  "createdAt":  "2026-03-15T14:22:01",
   "ca":         "https://acme-v02.api.letsencrypt.org/directory"
 }
 ```
@@ -59,6 +59,11 @@ End if
 | | Type | Description |
 |---|---|---|
 | **Return** | Boolean | `True` if both `account-key.pem` and `account.json` were found and valid |
+
+`load()` also creates the store directory if it is missing. It returns `False` — meaning "no usable
+account" — in three distinct situations: no key file, a key file but no `account.json` (a partial
+state left by an interrupted first run), or an `account.json` that will not parse or has no
+`accountUrl`. `ACMEClient.setup()` treats all three the same way and generates a fresh key.
 
 ---
 

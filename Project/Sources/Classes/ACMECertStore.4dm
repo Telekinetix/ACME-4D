@@ -55,38 +55,48 @@ Function saveCertificate($vt_certPem : Text; $vt_keyPem : Text) : Object
 	$vf_key:=File:C1566(This:C1470._config.keyPath; fk platform path:K87:2)
 	
 	If (Not:C34($vf_cert.parent.exists))
-		Try
-			$vf_cert.parent.create()
-		Catch
+		
+		ERR_HANDLE("set")
+		$vf_cert.parent.create()
+		ERR_HANDLE("clear")
+		
+		If (vl_acmeError#0)
 			$result.error:="Could not create cert directory: "+This:C1470._config.certPath
 			return $result
-		End try
+		End if 
+		
 	End if 
 	
 	If (Not:C34($vf_key.parent.exists))
-		Try
-			$vf_key.parent.create()
-		Catch
+		ERR_HANDLE("set")
+		$vf_key.parent.create()
+		ERR_HANDLE("clear")
+		
+		If (vl_acmeError#0)
 			$result.error:="Could not create key directory: "+This:C1470._config.keyPath
 			return $result
-		End try
+		End if 
 	End if 
 	
 	// Write certificate (not secret — logged only by path, not content)
-	Try
-		$vf_cert.setText($vt_certPem; "utf-8")
-	Catch
+	ERR_HANDLE("set")
+	$vf_cert.setText($vt_certPem; "utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		$result.error:="Failed to write certificate file: "+This:C1470._config.certPath
 		return $result
-	End try
+	End if 
 	
 	// Write private key (secret — path only, content never logged)
-	Try
-		$vf_key.setText($vt_keyPem; "utf-8")
-	Catch
+	ERR_HANDLE("set")
+	$vf_key.setText($vt_keyPem; "utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		$result.error:="Failed to write key file"
 		return $result
-	End try
+	End if 
 	
 	// Save metadata
 	This:C1470._saveMeta($vt_certPem)
@@ -181,25 +191,29 @@ Function triggerReload() : Object
 		: (This:C1470._config.postRenewAction="restart")
 			// WEB STOP SERVER / WEB START SERVER — brief connection drop
 			This:C1470._logger.info("Restarting web server to load new certificate"; Null:C1517)
-			Try
-				WEB STOP SERVER:C618
-				DELAY PROCESS:C323(Current process:C322; 60)  // 1 second pause
-				WEB START SERVER:C617
-				This:C1470._logger.info("Web server restarted"; Null:C1517)
-			Catch
+			ERR_HANDLE("set")
+			WEB STOP SERVER:C618
+			DELAY PROCESS:C323(Current process:C322; 60)  // 1 second pause
+			WEB START SERVER:C617
+			This:C1470._logger.info("Web server restarted"; Null:C1517)
+			ERR_HANDLE("clear")
+			
+			If (vl_acmeError#0)
 				$result.success:=False:C215
 				$result.error:="Web server restart failed"
 				This:C1470._logger.error("Web server restart failed"; Null:C1517)
-			End try
+			End if 
 			
 		: (This:C1470._config.postRenewAction="none")
 			// No built-in action — call the formula if provided
 			If (This:C1470._config.postRenewFormula#Null:C1517)
-				Try
-					This:C1470._config.postRenewFormula.call(This:C1470; $result)
-				Catch
+				ERR_HANDLE("set")
+				This:C1470._config.postRenewFormula.call(This:C1470; $result)
+				ERR_HANDLE("clear")
+				
+				If (vl_acmeError#0)
 					This:C1470._logger.warn("Post-renew formula raised an error"; Null:C1517)
-				End try
+				End if 
 			End if 
 			
 		Else 
@@ -308,23 +322,27 @@ Function _loadMeta() : Object
 	If (Not:C34($vf_meta.exists))
 		return Null:C1517
 	End if 
-	Try
-		var $vt_json : Text
-		$vt_json:=$vf_meta.getText("utf-8")
-		return JSON Parse:C1218($vt_json)
-	Catch
+	ERR_HANDLE("set")
+	var $vt_json : Text
+	$vt_json:=$vf_meta.getText("utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		return Null:C1517
-	End try
+	End if 
+	return JSON Parse:C1218($vt_json)
 	
 	
 Function _writeMeta($vo_meta : Object)
 	var $vf_meta : 4D:C1709.File
 	$vf_meta:=File:C1566(This:C1470._metaFilePath(); fk platform path:K87:2)
-	Try
-		$vf_meta.setText(JSON Stringify:C1217($vo_meta); "utf-8")
-	Catch
+	ERR_HANDLE("set")
+	$vf_meta.setText(JSON Stringify:C1217($vo_meta); "utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		This:C1470._logger.warn("Could not write cert metadata file"; Null:C1517)
-	End try
+	End if 
 	
 	
 Function _saveMeta($vt_certPem : Text)

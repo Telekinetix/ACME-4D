@@ -2,7 +2,13 @@
 
 ARI-driven automatic renewal scheduler for the `tk-acme` component.
 
-Checks once daily whether the certificate needs renewal, using ACME Renewal Information (RFC 9773) where the CA advertises it, with a time-based fallback (2/3 of lifetime elapsed). Jitter is applied so that many systems sharing this component do not hit the CA simultaneously.
+Checks once daily whether the certificate needs renewal, using ACME Renewal Information (RFC 9773) where the CA advertises it, with a time-based fallback (2/3 of lifetime elapsed).
+
+> **Two design goals are not live yet.** ARI always short-circuits (`_buildAriUrl()` returns `""`), so
+> today every renewal decision comes from the time-based fallback. And **no jitter is applied anywhere** —
+> `_applyAriJitter()` returns its input unchanged, and the time-based threshold is flat. A fleet sharing
+> this component will renew in lockstep. Both are tracked in
+> [`docs/review-findings.md`](../../docs/review-findings.md).
 
 ## Constructor
 
@@ -66,6 +72,13 @@ Flow:
 3. If renewal is needed: calls `ACMEClient.renew()`, updates Storage status.
 4. Schedules the next check date (`_computeNextCheck`) and records it in the cert metadata.
 
+> **Known bug — `_computeNextCheck()` returns a nonsense date.** `$vd_next` is never seeded with
+> `Current date` before the `Add to date()` call, so it starts from the null date `!00-00-00!`. With the
+> default 24-hour interval the `Else` branch is always taken, so `nextCheck` — in both
+> `Storage.acme.scheduler` and `acme-cert-meta.json` — is meaningless. Renewals are unaffected
+> (`check()` is driven by the host's timer and `nextCheck` is never read back as a gate), but the
+> monitoring surface is not usable until this is fixed.
+
 ## Storage State (`Storage.acme.scheduler`)
 
 The scheduler writes its state to a shared object in `Storage` so the host application can query it without touching files.
@@ -90,9 +103,21 @@ $state:=Storage.acme.scheduler
 
 When the CA's directory advertises a `renewalInfo` URL, `_checkAri` fetches the `suggestedWindow` for the current certificate and stores it in the cert metadata. The next call to `ACMECertStore.needsRenewal()` uses this window in preference to the time-based trigger.
 
-Jitter is applied within the ARI window: the effective renewal start is shifted forward by a random fraction of the window duration so that a fleet of deployments does not all renew at exactly the same moment.
+The design intent is that jitter is then applied within the ARI window — the effective renewal start
+shifted forward by a random fraction of the window duration, so a fleet of deployments does not all
+renew at the same moment.
 
-> **Current limitation:** `_buildAriUrl()` returns `""` (triggering the time-based fallback) until the DER parser spike is resolved. The ARI URL requires the certificate's issuer key hash and serial number, which need ASN.1 DER parsing of the issued certificate. See [kickoff §7.1](../../docs/tk-acme-component-kickoff.md).
+> **Neither half of this is active.**
+>
+> `_buildAriUrl()` returns `""` unconditionally, so `_checkAri()` always returns `False` and no ARI
+> window is ever stored. The ARI URL needs the certificate's issuer key hash and serial number, which
+> require ASN.1 DER parsing of the issued certificate — the same gap as
+> [`ACMECertStore`](ACMECertStore.md)'s `notAfter` parsing. The ASN.1 reader written for
+> [`ACMEJwsSigner`](ACMEJwsSigner.md) covers most of the machinery needed.
+>
+> `_applyAriJitter()` copies `start` and `end` and returns them unchanged. Its own comment says a real
+> implementation needs second-precision date arithmetic. Since it is only reachable from `_checkAri()`,
+> it is currently dead code either way.
 
 ## Renewal Timing Design
 
@@ -103,7 +128,10 @@ Designed for the 47-day certificate lifetime coming under CA/Browser Forum ballo
 | 90 days (current LE) | Day 60 | 30-day window |
 | 47 days (from Mar 2029) | Day 31 | 16-day window |
 
-ARI further narrows the window with CA-provided guidance, making manual tuning unnecessary.
+ARI is intended to narrow the window further with CA-provided guidance. Until it is active, note that
+the ⅔ threshold is computed from `ACMECertStore`'s **assumed** 90-day lifetime, not the certificate's
+real `notAfter` — which makes the table above optimistic for any certificate shorter than 90 days. See
+[`ACMECertStore`](ACMECertStore.md).
 
 ## Recommended Worker Pattern
 

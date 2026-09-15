@@ -64,12 +64,15 @@ Function load() : Boolean
 		return False:C215
 	End if 
 	
-	Try
-		This:C1470._privateKeyPem:=$vf_keyFile.getText("utf-8")
-	Catch
+	ERR_HANDLE("set")
+	This:C1470._privateKeyPem:=$vf_keyFile.getText("utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		This:C1470._logger.error("Failed to read account key file"; New object:C1471("path"; $vt_storePath+"account-key.pem"))
 		return False:C215
-	End try
+	End if 
+	
 	
 	// Load account metadata
 	var $vf_meta : 4D:C1709.File
@@ -81,13 +84,16 @@ Function load() : Boolean
 	
 	var $vt_json : Text
 	var $vo_meta : Object
-	Try
-		$vt_json:=$vf_meta.getText("utf-8")
-		$vo_meta:=JSON Parse:C1218($vt_json)
-	Catch
+	
+	ERR_HANDLE("set")
+	$vt_json:=$vf_meta.getText("utf-8")
+	$vo_meta:=JSON Parse:C1218($vt_json)
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		This:C1470._logger.warn("Could not parse account.json; will re-register"; Null:C1517)
 		return False:C215
-	End try
+	End if 
 	
 	If ($vo_meta=Null:C1517) | (Length:C16(String:C10($vo_meta.accountUrl))=0)
 		return False:C215
@@ -114,12 +120,15 @@ Function save()
 	// Write private key (key material — never log contents)
 	var $vf_keyFile : 4D:C1709.File
 	$vf_keyFile:=File:C1566($vt_storePath+"account-key.pem"; fk platform path:K87:2)
-	Try
-		$vf_keyFile.setText(This:C1470._privateKeyPem; "utf-8")
-	Catch
+	
+	ERR_HANDLE("set")
+	$vf_keyFile.setText(This:C1470._privateKeyPem; "utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		This:C1470._logger.error("Failed to write account key file"; New object:C1471("path"; $vt_storePath+"account-key.pem"))
 		return 
-	End try
+	End if 
 	
 	// Write metadata (no key material)
 	var $vo_meta : Object
@@ -131,12 +140,14 @@ Function save()
 	
 	var $vf_meta : 4D:C1709.File
 	$vf_meta:=File:C1566($vt_storePath+"account.json"; fk platform path:K87:2)
-	Try
-		$vf_meta.setText(JSON Stringify:C1217($vo_meta); "utf-8")
-	Catch
-		This:C1470._logger.error("Failed to write account.json"; Null:C1517)
-	End try
 	
+	ERR_HANDLE("set")
+	$vf_meta.setText(JSON Stringify:C1217($vo_meta); "utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
+		This:C1470._logger.error("Failed to write account.json"; Null:C1517)
+	End if 
 	
 	// ============================================================
 	// KEY GENERATION

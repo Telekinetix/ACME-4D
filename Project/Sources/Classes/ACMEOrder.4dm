@@ -457,12 +457,7 @@ Function _saveOrderState()
 	
 	var $vf_state : 4D:C1709.File
 	$vf_state:=File:C1566($vt_storePath+"order-"+$vt_hostname+".json"; fk platform path:K87:2)
-	Try
-		$vf_state.setText(JSON Stringify:C1217($vo_state); "utf-8")
-	Catch
-		This:C1470._logger.warn("Could not save order state"; Null:C1517)
-	End try
-	
+	$vf_state.setText(JSON Stringify:C1217($vo_state); "utf-8")
 	
 Function loadOrderState() : Boolean
 	// Load a previously persisted order state. Returns True if a resumable
@@ -482,23 +477,19 @@ Function loadOrderState() : Boolean
 		return False:C215
 	End if 
 	
-	Try
-		var $vt_json : Text
-		var $vo_state : Object
-		$vt_json:=$vf_state.getText("utf-8")
-		$vo_state:=JSON Parse:C1218($vt_json)
-		
-		If ($vo_state=Null:C1517)
-			return False:C215
-		End if 
-		
-		This:C1470._orderUrl:=String:C10($vo_state.orderUrl)
-		This:C1470._finalizeUrl:=String:C10($vo_state.finalizeUrl)
-		This:C1470._certUrl:=String:C10($vo_state.certUrl)
-		This:C1470._authUrls:=$vo_state.authUrls
-		This:C1470._status:=String:C10($vo_state.status)
-		return (Length:C16(This:C1470._orderUrl)>0)
-	Catch
+	var $vt_json : Text
+	var $vo_state : Object
+	$vt_json:=$vf_state.getText("utf-8")
+	$vo_state:=JSON Parse:C1218($vt_json)
+	
+	If ($vo_state=Null:C1517)
 		return False:C215
-	End try
+	End if 
+	
+	This:C1470._orderUrl:=String:C10($vo_state.orderUrl)
+	This:C1470._finalizeUrl:=String:C10($vo_state.finalizeUrl)
+	This:C1470._certUrl:=String:C10($vo_state.certUrl)
+	This:C1470._authUrls:=$vo_state.authUrls
+	This:C1470._status:=String:C10($vo_state.status)
+	return (Length:C16(This:C1470._orderUrl)>0)
 	

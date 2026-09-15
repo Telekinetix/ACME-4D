@@ -44,11 +44,13 @@ Function build($vt_privateKeyPem : Text; $vt_hostname : Text) : Text
 	
 	// 1. Load the private key
 	var $vo_cryptoKey : 4D:C1709.CryptoKey
-	Try
-		$vo_cryptoKey:=4D:C1709.CryptoKey.new(New object:C1471("type"; "PEM"; "pem"; $vt_privateKeyPem))
-	Catch
+	ERR_HANDLE("set")
+	$vo_cryptoKey:=4D:C1709.CryptoKey.new(New object:C1471("type"; "PEM"; "pem"; $vt_privateKeyPem))
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		return ""
-	End try
+	End if 
 	
 	// 2. Get the public key DER bytes (SubjectPublicKeyInfo from PEM)
 	var $vb_spki : Blob
@@ -62,13 +64,7 @@ Function build($vt_privateKeyPem : Text; $vt_hostname : Text) : Text
 	$vb_cri:=This:C1470._buildCertificationRequestInfo($vt_hostname; $vb_spki)
 	
 	// 4. Sign the CertificationRequestInfo with RS256
-	var $vo_signOpts : Object
-	var $vt_criB64 : Text
 	var $vb_signature : Blob
-	$vo_signOpts:=New object:C1471("algorithm"; "RS256"; "encoding"; "Base64")
-	
-	// sign() works on text; encode CRI as base64 for input, then get raw bytes
-	BASE64 ENCODE:C895($vb_cri; $vt_criB64; *)
 	
 	// For RS256 DER signing we need the raw signature bytes.
 	// 4D.CryptoKey.sign() returns base64 or base64URL text.
@@ -83,7 +79,7 @@ Function build($vt_privateKeyPem : Text; $vt_hostname : Text) : Text
 	// 5. Wrap into the outer CertificationRequest SEQUENCE
 	var $vb_csr : Blob
 	$vb_csr:=This:C1470._buildCertificationRequest($vb_cri; $vb_signature)
-
+	
 	// 6. Base64url-encode the DER
 	return This:C1470._base64urlBlob($vb_csr)
 	
@@ -288,24 +284,24 @@ Function _derSubjectCN($vt_cn : Text) : Blob
 	// Build the subject Name: SEQUENCE { SET { SEQUENCE { OID-cn, UTF8String cn } } }
 	// OID for commonName: 2.5.4.3
 	var $vb_oidCN : Blob
-	$vb_oidCN:=This._derOid(New collection(2; 5; 4; 3))
+	$vb_oidCN:=This:C1470._derOid(New collection:C1472(2; 5; 4; 3))
 	
 	var $vb_cnStr : Blob
-	$vb_cnStr:=This._derUtf8String($vt_cn)
+	$vb_cnStr:=This:C1470._derUtf8String($vt_cn)
 	
 	// SEQUENCE { OID, UTF8String }
 	var $vb_attrSeq : Blob
-	COPY BLOB($vb_oidCN; $vb_attrSeq; 0; BLOB size($vb_attrSeq); BLOB size($vb_oidCN))
-	COPY BLOB($vb_cnStr; $vb_attrSeq; 0; BLOB size($vb_attrSeq); BLOB size($vb_cnStr))
+	COPY BLOB:C558($vb_oidCN; $vb_attrSeq; 0; BLOB size:C605($vb_attrSeq); BLOB size:C605($vb_oidCN))
+	COPY BLOB:C558($vb_cnStr; $vb_attrSeq; 0; BLOB size:C605($vb_attrSeq); BLOB size:C605($vb_cnStr))
 	var $vb_attrSeqWrapped : Blob
-	$vb_attrSeqWrapped:=This._derSequence($vb_attrSeq)
+	$vb_attrSeqWrapped:=This:C1470._derSequence($vb_attrSeq)
 	
 	// SET { SEQUENCE {...} }
 	var $vb_attrSet : Blob
-	$vb_attrSet:=This._derSet($vb_attrSeqWrapped)
+	$vb_attrSet:=This:C1470._derSet($vb_attrSeqWrapped)
 	
 	// SEQUENCE { SET {...} }
-	return This._derSequence($vb_attrSet)
+	return This:C1470._derSequence($vb_attrSet)
 	
 	
 Function _derAlgorithmIdentifierSha256WithRSA() : Blob
@@ -390,11 +386,13 @@ Function _publicKeyDerFromPem($vo_cryptoKey : 4D:C1709.CryptoKey) : Blob
 	var $vt_pem : Text
 	var $vb_der : Blob
 	
-	Try
-		$vt_pem:=$vo_cryptoKey.getPublicKey()
-	Catch
+	ERR_HANDLE("set")
+	$vt_pem:=$vo_cryptoKey.getPublicKey()
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		return $vb_der
-	End try
+	End if 
 	
 	// Strip PEM header/footer and newlines, then base64-decode
 	var $vt_b64 : Text
@@ -415,13 +413,15 @@ Function _signBlob($vo_cryptoKey : 4D:C1709.CryptoKey; $vb_data : Blob) : Text
 	// determined by the key type, not the options object.
 	
 	var $vt_signature : Text
-	Try
-		$vt_signature:=$vo_cryptoKey.sign($vb_data; New object(\
-			"hash"; "SHA256"; \
-			"encoding"; "Base64"))
-	Catch
+	ERR_HANDLE("set")
+	$vt_signature:=$vo_cryptoKey.sign($vb_data; New object:C1471(\
+		"hash"; "SHA256"; \
+		"encoding"; "Base64"))
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		return ""
-	End try
+	End if 
 	
 	return $vt_signature
 	
