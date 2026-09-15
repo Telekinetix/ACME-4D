@@ -9,8 +9,8 @@
 // during development never consume production rate-limit quota.
 //
 // Usage (host application):
-//   var $cfg : cs.ACMEConfig
-//   $cfg:=cs.ACMEConfig.new()
+//   var $cfg : cs.acme.ACMEConfig
+//   $cfg:=cs.acme.ACMEConfig.new()
 //   $cfg.setEmail("admin@example.com")
 //   $cfg.addIdentifier("myhost.example.com")
 //   $cfg.setCertPath("/etc/ssl/acme/cert.pem")
@@ -214,6 +214,12 @@ Function isValid() : Boolean
 	If (Length:C16(This:C1470.keyPath)=0)
 		return False:C215
 	End if 
+	
+	// TEMP - ACMEOrder._finalize currently does not support >1 identifier
+	If (This:C1470.identifiers.length>1)
+		return False:C215
+	End if 
+	
 	return True:C214
 	
 	
@@ -231,6 +237,12 @@ Function validationError() : Text
 	If (Length:C16(This:C1470.keyPath)=0)
 		return "keyPath is required"
 	End if 
+	
+	// TEMP - ACMEOrder._finalize currently does not support >1 identifier
+	If (This:C1470.identifiers.length>1)
+		return "only one identifier (hostname) allowed"
+	End if 
+	
 	return ""
 	
 	

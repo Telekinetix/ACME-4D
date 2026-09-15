@@ -146,26 +146,6 @@ Function _signedRequest($vt_url : Text; $vo_payload : Object; $vb_postAsGet : Bo
 		return $result
 	End if 
 	
-	var $vt_nonce : Text
-	$vt_nonce:=This:C1470.freshNonce()
-	If (Length:C16($vt_nonce)=0)
-		$result.error:="ACMETransport: could not obtain a Replay-Nonce"
-		return $result
-	End if 
-	
-	// Build JWS
-	var $vo_jws : Object
-	If ($vb_postAsGet)
-		$vo_jws:=This:C1470._signer.signPostAsGet($vt_url; $vt_nonce)
-	Else 
-		$vo_jws:=This:C1470._signer.sign($vt_url; $vo_payload; $vt_nonce)
-	End if 
-	
-	If ($vo_jws=Null:C1517)
-		$result.error:="ACMETransport: JWS signing failed"
-		return $result
-	End if 
-	
 	// HTTP POST
 	var $vo_options : Object
 	$vo_options:=New object:C1471(\
@@ -173,10 +153,9 @@ Function _signedRequest($vt_url : Text; $vo_payload : Object; $vb_postAsGet : Bo
 		"headers"; New object:C1471(\
 		"Content-Type"; "application/jose+json"; \
 		"Accept"; "application/json"); \
-		"body"; $vo_jws; \
 		"timeout"; This:C1470._config.timeout)
 	
-	return This:C1470._executeWithRetry($vt_url; $vo_options; 1)
+	return This:C1470._executeWithRetry($vt_url; $vo_options; 1; $vb_postAsGet; $vo_payload)
 	
 	
 	// ============================================================
@@ -196,13 +175,38 @@ Function _rawGet($vt_url : Text) : Object
 	// INTERNAL — HTTP EXECUTE WITH RETRY
 	// ============================================================
 	
-Function _executeWithRetry($vt_url : Text; $vo_options : Object; $vl_attempt : Integer) : Object
+Function _executeWithRetry($vt_url : Text; $vo_options : Object; $vl_attempt : Integer; $vb_postAsGet : Boolean; $vo_payload : Object) : Object
 	var $result : Object
 	$result:=This:C1470._emptyResult($vt_url)
 	
 	var $vo_request : 4D:C1709.HTTPRequest
 	var vl_acmeHttpError : Integer
-	var vt_acmeHttpError : Text
+	var vt_acmeHttpError; $vt_nonce : Text
+	
+	If ($vb_postAsGet) | ($vo_payload#Null:C1517)
+		
+		$vt_nonce:=This:C1470.freshNonce()
+		If (Length:C16($vt_nonce)=0)
+			$result.error:="ACMETransport: could not obtain a Replay-Nonce"
+			return $result
+		End if 
+		
+		// Build JWS
+		var $vo_jws : Object
+		If ($vb_postAsGet)
+			$vo_jws:=This:C1470._signer.signPostAsGet($vt_url; $vt_nonce)
+		Else 
+			$vo_jws:=This:C1470._signer.sign($vt_url; $vo_payload; $vt_nonce)
+		End if 
+		
+		If ($vo_jws=Null:C1517)
+			$result.error:="ACMETransport: JWS signing failed"
+			return $result
+		End if 
+		
+		$vo_options.body:=$vo_jws
+		
+	End if 
 	
 	vl_acmeHttpError:=0
 	vt_acmeHttpError:=""
@@ -218,7 +222,7 @@ Function _executeWithRetry($vt_url : Text; $vo_options : Object; $vl_attempt : I
 		// Retry on network error (up to 3 attempts)
 		If ($vl_attempt<3)
 			DELAY PROCESS:C323(Current process:C322; 2*$vl_attempt*60)  // 2s, 4s back-off (ticks)
-			return This:C1470._executeWithRetry($vt_url; $vo_options; $vl_attempt+1)
+			return This:C1470._executeWithRetry($vt_url; $vo_options; $vl_attempt+1; $vb_postAsGet; $vo_payload)
 		End if 
 		return $result
 	End if 
@@ -245,7 +249,7 @@ Function _executeWithRetry($vt_url : Text; $vo_options : Object; $vl_attempt : I
 	End if 
 	
 	If (Length:C16($vt_body)>0)
-		$vo_body:=Try(JSON Parse:C1218($vt_body))
+		$vo_body:=JSON Parse:C1218($vt_body)
 		If ($vo_body#Null:C1517) && (Value type:C1509($vo_body)=Is object:K8:27)
 			$result.body:=$vo_body
 		Else 
@@ -266,7 +270,7 @@ Function _executeWithRetry($vt_url : Text; $vo_options : Object; $vl_attempt : I
 	// 5xx = transient server error — retry
 	If ($vo_request.response.status>=500) && ($vl_attempt<3)
 		DELAY PROCESS:C323(Current process:C322; 2*$vl_attempt*60)
-		return This:C1470._executeWithRetry($vt_url; $vo_options; $vl_attempt+1)
+		return This:C1470._executeWithRetry($vt_url; $vo_options; $vl_attempt+1; $vb_postAsGet; $vo_payload)
 	End if 
 	
 	// Error response — parse ACME problem document
@@ -294,7 +298,9 @@ Function _captureNonce($headers : Object)
 	If ($headers#Null:C1517) && (OB Is defined:C1231($headers; "Replay-Nonce"))
 		This:C1470._nonce:=String:C10($headers["Replay-Nonce"])
 	End if 
-	
+	If ($headers#Null:C1517) && (OB Is defined:C1231($headers; "replay-nonce"))
+		This:C1470._nonce:=String:C10($headers["replay-nonce"])
+	End if 
 	
 Function _parseError($vv_body : Variant; $vl_status : Integer) : Text
 	// Parse an ACME problem document into a human-readable error.

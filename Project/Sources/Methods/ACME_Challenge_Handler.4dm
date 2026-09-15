@@ -19,13 +19,13 @@
 // The client instance reference must be available. In the simplest case,
 // check Storage directly (see ACMEChallenge._publishViaWebServer).
 // ----------------------------------------------------
-//%attributes = {}
 
 #DECLARE($vt_url : Text)
 
 var $vt_keyAuth : Text
 var $vt_token : Text
 var $vl_pos : Integer
+var $vo_response
 
 // Extract token from /.well-known/acme-challenge/<token>
 $vl_pos:=Position:C15("/.well-known/acme-challenge/"; $vt_url)
@@ -52,5 +52,17 @@ If (Length:C16($vt_keyAuth)>0)
 	WEB SEND TEXT:C677($vt_keyAuth; "text/plain")
 Else 
 	// Challenge not found — return 404
-	WEB SEND HTTP REDIRECT:C659("/")
+	
+	ARRAY TEXT:C222($at_header; 0)
+	ARRAY TEXT:C222($at_value; 0)
+	
+	APPEND TO ARRAY:C911($at_header; "X-STATUS")
+	APPEND TO ARRAY:C911($at_value; "404 Not Found")
+	
+	WEB SET HTTP HEADER:C660($at_header; $at_value)
+	
+	$vo_response:={error: "challenge not found"}
+	
+	WEB SEND TEXT:C677(JSON Stringify:C1217($vo_response); "application/json")
+	
 End if 

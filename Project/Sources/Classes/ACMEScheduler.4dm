@@ -180,7 +180,7 @@ Function _checkAri() : Boolean
 	If (Value type:C1509($vo_request.response.body)=Is text:K8:3)
 		$vt_body:=$vo_request.response.body
 	End if 
-	$vo_body:=Try(JSON Parse:C1218($vt_body))
+	$vo_body:=JSON Parse:C1218($vt_body)
 	
 	If ($vo_body=Null:C1517) | (Not:C34(OB Is defined:C1231($vo_body; "suggestedWindow")))
 		return False:C215
@@ -247,7 +247,7 @@ Function _computeNextCheck() : Date
 	If ((This:C1470._checkIntervalHours\24)=0)
 		$vd_next:=Current date:C33+1
 	Else 
-		$vd_next:=Add to date:C393($vd_next; 0; 0; This:C1470._checkIntervalHours\24)
+		$vd_next:=Add to date:C393(Current date:C33; 0; 0; (This:C1470._checkIntervalHours\24))
 	End if 
 	return $vd_next
 	

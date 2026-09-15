@@ -168,23 +168,27 @@ Function _publishViaWebroot($vt_token : Text; $vt_keyAuth : Text) : Object
 	var $vf_dir : 4D:C1709.Folder
 	$vf_dir:=Folder:C1567($vt_challengeDir; fk platform path:K87:2)
 	If (Not:C34($vf_dir.exists))
-		Try
-			$vf_dir.create()
-		Catch
+		ERR_HANDLE("set")
+		$vf_dir.create()
+		ERR_HANDLE("clear")
+		
+		If (vl_acmeError#0)
 			$result.error:="Failed to create challenge directory: "+$vt_challengeDir
 			return $result
-		End try
+		End if 
 	End if 
 	
 	// Write the keyAuthorization as plain text (token filename, no extension)
 	var $vf_token : 4D:C1709.File
 	$vf_token:=File:C1566($vt_challengeDir+$vt_token; fk platform path:K87:2)
-	Try
-		$vf_token.setText($vt_keyAuth; "utf-8")
-	Catch
+	ERR_HANDLE("set")
+	$vf_token.setText($vt_keyAuth; "utf-8")
+	ERR_HANDLE("clear")
+	
+	If (vl_acmeError#0)
 		$result.error:="Failed to write challenge token file"
 		return $result
-	End try
+	End if 
 	
 	$result.success:=True:C214
 	return $result
@@ -201,12 +205,14 @@ Function _unpublishViaWebroot($vt_token : Text)
 	var $vf_token : 4D:C1709.File
 	$vf_token:=File:C1566($vt_challengeDir+$vt_token; fk platform path:K87:2)
 	If ($vf_token.exists)
-		Try
-			$vf_token.delete()
-		Catch
+		ERR_HANDLE("set")
+		$vf_token.delete()
+		ERR_HANDLE("clear")
+		
+		If (vl_acmeError#0)
 			// Best-effort cleanup; log but don't fail
 			This:C1470._logger.warn("Could not delete challenge token file"; Null:C1517)
-		End try
+		End if 
 	End if 
 	
 	
